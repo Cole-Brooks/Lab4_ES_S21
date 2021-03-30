@@ -1,6 +1,7 @@
 
-AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Mon Mar 29 16:54:08 2021
+AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Tue Mar 30 12:31:33 2021
 
+[builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
                                  
                                  ;
@@ -990,10 +991,52 @@ AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded 
                                  ; Authors : Cole Brooks,
                                  ;			Thomas Butler
                                  ;
-                                 ; ****************************** INITIALIZATION *****************************
-                                 
+                                 ; ****************************** MACROS / REGISTER DEFINES *****************************
                                  ; register usage
                                  .def temp = R16
+                                 .def temp2 = R17
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; Macro: COMMAND MODE: 
+                                 ; Purpose: switches LCD to command mode
+                                 .macro COMMAND_MODE
+                                 	cbi PORTB,5
+                                 .endmacro
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; Macro: CHAR_MODE: 
+                                 ; Purpose: switches LCD to data mode
+                                 .macro CHAR_MODE
+                                 	sbi PORTB, 5
+                                 .endmacro
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; Macro: CLEAR_E
+                                 ; Purpose: Clears the enable pin
+                                 .macro CLEAR_E
+                                 	cbi PORTB,3
+                                 .endmacro
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; Macro: SET_E: 
+                                 ; Purpose: sets the enable pin
+                                 .macro SET_E
+                                 	sbi PORTB, 3
+                                 .endmacro
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; Macro: SEND_BY_NIBBLE: 
+                                 ; Purpose: sends the contents of temp2 nibble by nibble to data pins
+                                 .macro SEND_BY_NIBBLE
+                                 	swap temp2			; get upper nibble ready
+                                 	OUT PORTC, temp2	; send upper nibble
+                                 	rcall LCDStrobe		; flash enable 
+                                 	ldi temp, 100		
+                                 	rcall delayTx1ms	; wait a bit
+                                 	swap temp2			; get lower nibble ready
+                                 	OUT PORTC, temp2	; send lower nibble
+                                 	rcall LCDStrobe		
+                                 .endmacro
                                  
                                  ; LCD Connections
                                  .equ LCD_port = PORTD
@@ -1004,18 +1047,22 @@ AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded 
                                  .equ LCD_6 = PORTC2
                                  .equ LCD_7 = PORTC3
                                  
+                                 .equ LCD_rs = PORTB5
+                                 .equ LCD_e = PORTB3
+                                 
                                  ; LCD hardware info
                                  .equ line_one = 0x00	; start of line 1 on the LCD
                                  .equ line_two = 0x40	; start of line 2 on the LCD
                                  
                                  ; LCD instructions
-                                 .equ LCD_clear  = 0b00000001			; replaces all characters with spaces
+                                 .equ LCD_clear  = 0x01					; replaces all characters with spaces
                                  .equ LCD_off = 0b00001000				; turn the display off
                                  .equ LCD_on = 0b00001100				; turn the display
                                  
                                  .equ LCD_4_bit_mode_init_1 = 0x33		; setting the screen to 4 bit mode requires
                                  .equ LCD_4_bit_mode_init_2 = 0x32		; 3 different commands. 1 initializes in 8 bit mode
                                  .equ LCD_4_bit_mode_set = 0x28			; 2 moves it to 
+                                 
                                  
                                  ; ****************************** MAIN PROGRAM *******************************
                                  start:
@@ -1028,10 +1075,115 @@ AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded 
                                  ; configure pins for data lines
 000004 9a50                      	sbi LCD_ddr, LCD_4
 000005 9a51                      	sbi LCD_ddr, LCD_5
-000006 9a52                      	sbi LCD_ddr, LCD_6
+000006 9a52                      	sbi LCD_ddr, LCD_6 
 000007 9a53                      	sbi LCD_ddr, LCD_7
                                  
 000008 e011                      	ldi R17, 0x01
+                                 
+                                 ; init LCD
+000009 d001                      	rcall init_LCD
+                                 
+                                 
+00000a cff5                      rjmp start
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; function: init_LCD
+                                 ; purpose: initializes the LCD
+                                 init_LCD:
+00000b e604                      	ldi temp, 100
+00000c d03e                      	rcall delayTx1ms
+                                 
+00000d 982d                      	COMMAND_MODE
+                                 	; Send Commands Nibble by Nibble
+00000e e313                      	ldi temp2, 0x33
+00000f 9512
+000010 b918
+000011 d034
+000012 e604
+000013 d037
+000014 9512
+000015 b918
+000016 d02f                      	SEND_BY_NIBBLE
+000017 e312                      	ldi temp2, 0x32
+000018 9512
+000019 b918
+00001a d02b
+00001b e604
+00001c d02e
+00001d 9512
+00001e b918
+00001f d026                      	SEND_BY_NIBBLE
+000020 e218                      	ldi temp2, 0x28
+000021 9512
+000022 b918
+000023 d022
+000024 e604
+000025 d025
+000026 9512
+000027 b918
+000028 d01d                      	SEND_BY_NIBBLE
+000029 e011                      	ldi temp2, 0x01				; clear screen
+00002a 9512
+00002b b918
+00002c d019
+00002d e604
+00002e d01c
+00002f 9512
+000030 b918
+000031 d014                      	SEND_BY_NIBBLE
+000032 e01c                      	ldi temp2, 0x0c				; Display on, underline off, blink off
+000033 9512
+000034 b918
+000035 d010
+000036 e604
+000037 d013
+000038 9512
+000039 b918
+00003a d00b                      	SEND_BY_NIBBLE
+00003b e016                      	ldi temp2, 0x06
+00003c 9512
+00003d b918
+00003e d007
+00003f e604
+000040 d00a
+000041 9512
+000042 b918
+000043 d002                      	SEND_BY_NIBBLE				; Display shift off, address increment
+                                 
+000044 9a2d                      	CHAR_MODE
+                                 	
+                                 
+000045 9508                      	ret
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; function: LCDStrobe
+                                 ; purpose: flashes the rs port
+                                 LCDStrobe:
+000046 9a2b                      	SET_E
+000047 e002                      	ldi temp, 2
+000048 d002                      	rcall delayTx1ms
+000049 9a2b                      	SET_E
+00004a 9508                      	ret
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; function: delayTx1ms
+                                 ; purpose: dealys for 1ms x temp
+                                 delayTx1ms:
+00004b d003                      	rcall delay1ms
+00004c 950a                      	dec temp
+00004d f7e9                      	brne delayTx1ms
+00004e 9508                      	ret
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; function: delay1ms
+                                 ; purpose: delays for ~1ms (1004 us)
+                                 delay1ms:
+00004f e125                          ldi  r18, 21
+000050 ec37                          ldi  r19, 199
+000051 953a                      	L1: dec  r19
+000052 f7f1                          brne L1
+000053 952a                          dec  r18
+000054 f7e1                          brne L1
 
 
 RESOURCE USE INFORMATION
@@ -1051,37 +1203,37 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:   4 r17:   1 r18:   0 r19:   0 r20:   0 
+r13:   0 r14:   0 r15:   0 r16:  13 r17:  31 r18:   2 r19:   2 r20:   0 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   0 r31:   0 
-Registers used: 2 out of 35 (5.7%)
+Registers used: 4 out of 35 (11.4%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   0 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
+brne  :   3 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   1 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   0 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
+cpi   :   0 cpse  :   0 dec   :   3 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :   3 lds   :   0 lpm   :   0 lsl   :   0 
+ld    :   0 ldd   :   0 ldi   :  19 lds   :   0 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   2 pop   :   0 
-push  :   0 rcall :   0 ret   :   0 reti  :   0 rjmp  :   1 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   4 sbic  :   0 sbis  :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  14 pop   :   0 
+push  :   0 rcall :  22 ret   :   4 reti  :   0 rjmp  :   1 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   7 sbic  :   0 sbis  :   0 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   0 
-sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 4 out of 113 (3.5%)
+sub   :   0 subi  :   0 swap  :  12 tst   :   0 wdr   :   0 
+Instructions used: 10 out of 113 (8.8%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000014     20      0     20   32768   0.1%
+[.cseg] 0x000000 0x0000ac    172      0    172   32768   0.5%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

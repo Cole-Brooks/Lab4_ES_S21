@@ -22,6 +22,11 @@
   <FILE>AssemblerApplication1.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <start><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>36</LINE></start>
+  <start><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>82</LINE></start>
+  <init_LCD><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>106</LINE></init_LCD>
+  <delayTx1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>143</LINE></delayTx1ms>
+  <LCDStrobe><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>133</LINE></LCDStrobe>
+  <delay1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>152</LINE></delay1ms>
+  <L1><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>155</LINE></L1>
  </LABELS>
 </ASSEMBLER_INFO>
