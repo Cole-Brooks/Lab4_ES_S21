@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Wed Mar 31 13:00:09 2021
+AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Wed Mar 31 14:12:36 2021
 
 
 EQU  SIGNATURE_000 0000001e
@@ -715,12 +715,12 @@ EQU  LCD_4_bit_mode_init_2 00000032
 EQU  LCD_4_bit_mode_set 00000028
 CSEG start        00000000
 CSEG init_LCD     00000017
-CSEG delayTx1ms   000000ae
-CSEG sendTest     00000069
+CSEG delayTx1ms   0000009d
+CSEG sendTest     00000064
 CSEG bruh         00000016
-CSEG delay100ms   000000b9
-CSEG LCDStrobe    000000a7
-CSEG delay1ms     000000b2
-CSEG L1           000000b4
-CSEG displayCString 000000bc
-CSEG done         000000c6
+CSEG delay100ms   000000a8
+CSEG LCDStrobe    00000096
+CSEG delay1ms     000000a1
+CSEG L1           000000a3
+CSEG displayCString 000000ab
+CSEG done         000000b5

@@ -53,44 +53,6 @@
 	rcall delayTx1ms
 .endmacro
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Macro: DATA_SEND: 
-; Purpose: sends the contents of temp2 nibble by nibble to data pins in 8 bit mode
-; NOTE: Make sure you're in the proper mode before sending data
-.macro DATA_SEND_8_bit
-	swap temp2			; get upper nibble ready
-	mov r27, temp2
-	OUT PORTC, r27
-	rcall LCDStrobe
-	ldi temp, 50		; wait 50 ms. (OVERKILL)
-	rcall delayTx1ms
-	mov r27, temp2
-	swap r27			; get lower nibble ready
-	OUT PORTC, r27
-	rcall LCDStrobe
-	ldi temp, 15
-	rcall delayTx1ms
-.endmacro
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Macro: DATA_SEND: 
-; Purpose: sends the contents of temp2 nibble by nibble to data pins
-; NOTE: Make sure you're in the proper mode before sending data
-.macro DATA_SEND
-	;swap temp2			; get upper nibble ready
-	mov r27, temp2
-	OUT PORTC, r27
-	rcall LCDStrobe
-	ldi temp, 50		; wait 50 ms. (OVERKILL)
-	rcall delayTx1ms
-	mov r27, temp2
-	swap r27			; get lower nibble ready
-	OUT PORTC, r27
-	rcall LCDStrobe
-	ldi temp, 15
-	rcall delayTx1ms
-.endmacro
-
 ; LCD Connections
 .equ LCD_port = PORTD
 .equ LCD_ddr = DDRD
@@ -145,12 +107,24 @@ start:
 	sbi DDRC, 3 ; D7
 
 ; init LCD
-	rcall init_LCD
+	rcall init_LCD 
 	ldi temp, 255
 	rcall delayTx1ms
 
 ; print test character to screen
 	rcall sendTest
+
+; create static string in program memory
+/*
+.cseg
+	msg1: .db "DC = ", 0x00
+	ldi r30,LOW(2*msg1) ; load Z register low
+	ldi r31,HIGH(2*msg1) ; load Z register high
+
+	CHAR_MODE ; make sure in character mode
+	CLEAR_E ; make sure E is cleared
+	rcall displayCString
+	*/
 
 	bruh:
 rjmp bruh
@@ -165,44 +139,35 @@ init_LCD:
 	ldi temp,255
 	rcall delayTx1ms
 
-	; Send Commands Nibble by Nibble
-	ldi temp2, 0x33
-	DATA_SEND_8_bit
+	ldi temp2, 0x33 ; set 8-bit mode
+	SEND_BY_NIBBLE
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x32
-	DATA_SEND_8_bit
+	ldi temp2, 0x32 ; set 8-bit mode (3) then 4 bit mode (2)
+	SEND_BY_NIBBLE
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x28
-	DATA_SEND_8_bit
+	ldi temp2, 0x28 ; set 4-bit mode, two rows, 5x7 chars
+	SEND_BY_NIBBLE
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x01				; clear screen
-	DATA_SEND_8_bit
+	ldi temp2, 0x01 ; clear display
+	SEND_BY_NIBBLE
 	ldi temp,255
 	rcall delayTx1ms
 
-	;ldi temp2, 0x01
-	;DATA_SEND
-	;ldi temp,255
-	;rcall delayTx1ms
-
-	;ldi temp2, 0x0c				; Display on, underline off, blink off
-	;DATA_SEND
-	;ldi temp,255
-	;rcall delayTx1ms
-
-	ldi temp2, 0b00000011
-	DATA_SEND_8_bit		
+	ldi temp2, 0x0c ; display on, underline off, blink off
+	SEND_BY_NIBBLE
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0b00000011
-	out PORTC, temp2
+	ldi temp2, 0x06 ; display shift off, address auto increment
+	SEND_BY_NIBBLE
+	ldi temp,255
+	rcall delayTx1ms
 								
 	ret
 
@@ -213,26 +178,26 @@ sendTest:
 	CHAR_MODE
 
 	// send bruh
-	ldi temp2, 0b01000010
-	DATA_SEND_8_bit
+	ldi temp2, 0b01000010 
+	SEND_BY_NIBBLE
 
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0b01010010
-	DATA_SEND_8_bit
+	SEND_BY_NIBBLE
 
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0b01010101
-	DATA_SEND_8_bit
+	SEND_BY_NIBBLE
 
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0b01001000
-	DATA_SEND_8_bit
+	SEND_BY_NIBBLE
 
 	ldi temp,255
 	rcall delayTx1ms
