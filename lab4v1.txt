@@ -1,0 +1,139 @@
+;
+; Lab 04.asm
+;
+; Created: 3/30/2021 1:34:57 PM
+; Author : thbul
+;
+.include "m328Pdef.inc"
+
+; Replace with your application code
+sbi	DDRB, 3	; E (Enable)
+sbi DDRB, 5 ; R/S (Instr/Register Select)
+sbi	DDRC, 0 ; D4
+sbi	DDRC, 1 ; D5
+sbi	DDRC, 2 ; D6
+sbi	DDRC, 3 ; D7
+
+.def	tmp1 = r24		; Use r23 for temporary variables
+.def	tmp2 = r25		; Use r24 for temporary values
+ldi		r26, 0xFF
+ldi		tmp1, 0x05
+out		TCCR0B, tmp1
+cbi PORTB, 5
+rcall delay_halfsec
+LCDstr:.db 0x33
+ldi		r30,LOW(2*LCDstr)    ; Load Z register low
+ldi		r31,HIGH(2*LCDstr)   ; Load Z register high
+rcall DisplayCString
+sbi PORTB, 5
+cbi PORTB, 5
+rcall delay_halfsec
+LCDstr2:.db 0x32
+ldi		r30,LOW(2*LCDstr2)    ; Load Z register low
+ldi		r31,HIGH(2*LCDstr2)   ; Load Z register high
+rcall DisplayCString
+sbi PORTB, 5
+cbi PORTB, 5
+rcall delay_halfsec
+LCDstr3:.db 0x28
+ldi		r30,LOW(2*LCDstr3)    ; Load Z register low
+ldi		r31,HIGH(2*LCDstr3)   ; Load Z register high
+rcall DisplayCString
+sbi PORTB, 5
+cbi PORTB, 5
+rcall delay_halfsec
+LCDstr4:.db 0x01
+ldi		r30,LOW(2*LCDstr4)    ; Load Z register low
+ldi		r31,HIGH(2*LCDstr4)   ; Load Z register high
+rcall DisplayCString
+sbi PORTB, 5
+cbi PORTB, 5
+rcall delay_halfsec
+LCDstr5:.db 0x0c
+ldi		r30,LOW(2*LCDstr5)    ; Load Z register low
+ldi		r31,HIGH(2*LCDstr5)   ; Load Z register high
+rcall DisplayCString
+sbi PORTB, 5
+cbi PORTB, 5
+rcall delay_halfsec
+LCDstr6:.db 0x06
+ldi		r30,LOW(2*LCDstr6)    ; Load Z register low
+ldi		r31,HIGH(2*LCDstr6)   ; Load Z register high
+rcall DisplayCString
+sbi PORTB, 5
+
+; Create static strings in program memory.
+sbi PORTB, 5
+rcall delay_halfsec
+
+.cseg msg1: .db "Hello",0x00
+	ldi		r30,LOW(2*msg1)    ; Load Z register low
+	ldi		r31,HIGH(2*msg1)   ; Load Z register high
+	rcall DisplayCString
+	bruh:
+	rjmp bruh
+
+	
+
+; Displays a constant null-terminated string stored in program
+; on the LCD.
+;
+displayCString:
+	lpm		r0,Z+		; r0 <--first byte
+	tst		r0			; Reached end of message ?
+	breq	done		; Yes => quit
+	swap	r0			; Upper nibble in place
+	out		PORTC,r0	; Send upper nibble out
+	rcall	LCDStrobe	; Latch nibble
+	swap	r0          ; Lower nibble in place
+	out		PORTC,r0	; Send lower nibble out
+	rcall	LCDStrobe	; Latch nibble
+	rjmp	displayCstring
+done:
+	ret
+
+LCDStrobe:
+	sbi		PORTB, 3
+	rcall	delay_10000us
+	cbi		PORTB, 3
+	ret
+
+; delays a 10000 microseconds multiple times
+delay:
+	rcall	delay_10000us
+	sbiw	Y, 1
+	brne	delay
+	ret
+; Wait for TIMER0 to roll over.
+delay_10000us:
+	; Stop timer 0.
+	in		tmp1,TCCR0B		; Save configuration
+	ldi		tmp2,0x00		; Stop timer 0
+	out		TCCR0B,tmp2   
+	; Clear overflow flag.
+	in		tmp2,TIFR0		; tmp<--TIFR0
+	sbr		tmp2,1<<TOV0	; Clear TOV0, write logic 1
+	out		TIFR0,tmp2
+	; Start timer with new initial count
+	out		TCNT0,r26		; Load counter
+	out		TCCR0B,tmp1		; Restart timer
+wait:
+	in		tmp2,TIFR0		; tmp<--TIFR0
+	sbrs	tmp2,TOV0		; Check overflow flag
+	rjmp	wait
+	ret
+
+		  delay_halfsec:
+	  ldi   r18,150    ; r23 <-- Counter for outer loop	 
+  d10: ldi   r19,150 ; r24 <-- Counter for level 2 loop 
+  d11: ldi   r20,150   ; r25 <-- Counter for inner loop
+  d12: dec   r20
+          nop
+	 
+		 
+      brne  d12 
+      dec   r19
+      brne  d11
+      dec   r18
+      brne  d10
+      ret

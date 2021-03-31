@@ -22,17 +22,16 @@
   <FILE>AssemblerApplication1.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <start><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>105</LINE></start>
-  <init_LCD><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>151</LINE></init_LCD>
-  <LCDStrobe><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>215</LINE></LCDStrobe>
-  <msg1><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>140</LINE></msg1>
-  <displayCString><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>256</LINE></displayCString>
-  <bruh><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>145</LINE></bruh>
-  <delay100ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>248</LINE></delay100ms>
-  <delayTx1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>227</LINE></delayTx1ms>
-  <sendTest><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>199</LINE></sendTest>
-  <delay1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>236</LINE></delay1ms>
-  <L1><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>239</LINE></L1>
-  <done><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>267</LINE></done>
+  <start><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>121</LINE></start>
+  <init_LCD><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>161</LINE></init_LCD>
+  <delayTx1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>257</LINE></delayTx1ms>
+  <sendTest><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>212</LINE></sendTest>
+  <bruh><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>155</LINE></bruh>
+  <delay100ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>278</LINE></delay100ms>
+  <LCDStrobe><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>245</LINE></LCDStrobe>
+  <delay1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>266</LINE></delay1ms>
+  <L1><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>269</LINE></L1>
+  <displayCString><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>286</LINE></displayCString>
+  <done><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>297</LINE></done>
  </LABELS>
 </ASSEMBLER_INFO>

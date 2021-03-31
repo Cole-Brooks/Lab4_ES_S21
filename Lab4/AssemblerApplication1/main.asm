@@ -15,7 +15,6 @@
 ; Purpose: switches LCD to command mode
 .macro COMMAND_MODE
 	cbi PORTB,5
-	rcall LCDStrobe
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -23,7 +22,6 @@
 ; Purpose: switches LCD to data mode
 .macro CHAR_MODE
 	sbi PORTB, 5
-	rcall LCDStrobe
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,7 +29,6 @@
 ; Purpose: Clears the enable pin
 .macro CLEAR_E
 	cbi PORTB,3
-	;rcall LCDStrobe
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -57,7 +54,26 @@
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Macro: COMMAND_SEND: 
+; Macro: DATA_SEND: 
+; Purpose: sends the contents of temp2 nibble by nibble to data pins in 8 bit mode
+; NOTE: Make sure you're in the proper mode before sending data
+.macro DATA_SEND_8_bit
+	swap temp2			; get upper nibble ready
+	mov r27, temp2
+	OUT PORTC, r27
+	rcall LCDStrobe
+	ldi temp, 50		; wait 50 ms. (OVERKILL)
+	rcall delayTx1ms
+	mov r27, temp2
+	swap r27			; get lower nibble ready
+	OUT PORTC, r27
+	rcall LCDStrobe
+	ldi temp, 15
+	rcall delayTx1ms
+.endmacro
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Macro: DATA_SEND: 
 ; Purpose: sends the contents of temp2 nibble by nibble to data pins
 ; NOTE: Make sure you're in the proper mode before sending data
 .macro DATA_SEND
@@ -65,7 +81,7 @@
 	mov r27, temp2
 	OUT PORTC, r27
 	rcall LCDStrobe
-	ldi temp, 15
+	ldi temp, 50		; wait 50 ms. (OVERKILL)
 	rcall delayTx1ms
 	mov r27, temp2
 	swap r27			; get lower nibble ready
@@ -130,17 +146,11 @@ start:
 
 ; init LCD
 	rcall init_LCD
+	ldi temp, 255
+	rcall delayTx1ms
 
 ; print test character to screen
-	ldi temp, 255
-	rcall delayTx1s
-	CHAR_MODE
-	ldi temp, 255
-	rcall delayTx1s
-	.cseg msg1: .db "Hello",0x00
-	ldi r30, LOW(2*msg1)
-	ldi r31, HIGH(2*msg1)
-	rcall displayCString
+	rcall sendTest
 
 	bruh:
 rjmp bruh
@@ -157,39 +167,42 @@ init_LCD:
 
 	; Send Commands Nibble by Nibble
 	ldi temp2, 0x33
-	DATA_SEND
+	DATA_SEND_8_bit
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x32
-	DATA_SEND
+	DATA_SEND_8_bit
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x28
-	DATA_SEND
+	DATA_SEND_8_bit
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x0E				; clear screen
-	DATA_SEND
+	ldi temp2, 0x01				; clear screen
+	DATA_SEND_8_bit
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x01
-	DATA_SEND
+	;ldi temp2, 0x01
+	;DATA_SEND
+	;ldi temp,255
+	;rcall delayTx1ms
+
+	;ldi temp2, 0x0c				; Display on, underline off, blink off
+	;DATA_SEND
+	;ldi temp,255
+	;rcall delayTx1ms
+
+	ldi temp2, 0b00000011
+	DATA_SEND_8_bit		
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x0c				; Display on, underline off, blink off
-	DATA_SEND
-	ldi temp,255
-	rcall delayTx1ms
-
-	ldi temp2, 0x06
-	DATA_SEND		
-	ldi temp,255
-	rcall delayTx1ms
+	ldi temp2, 0b00000011
+	out PORTC, temp2
 								
 	ret
 
@@ -199,14 +212,31 @@ init_LCD:
 sendTest:
 	CHAR_MODE
 
-	ldi r25, 0x04
-	out PORTC, r25
-	rcall LCDStrobe
-	rcall delay100ms
-	ldi r25, 0x05
-	out PORTC, r25
-	rcall LCDStrobe
-	rcall delay100ms
+	// send bruh
+	ldi temp2, 0b01000010
+	DATA_SEND_8_bit
+
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b01010010
+	DATA_SEND_8_bit
+
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b01010101
+	DATA_SEND_8_bit
+
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b01001000
+	DATA_SEND_8_bit
+
+	ldi temp,255
+	rcall delayTx1ms
+
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
