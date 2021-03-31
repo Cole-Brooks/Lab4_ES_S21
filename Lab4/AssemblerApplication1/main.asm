@@ -7,8 +7,10 @@
 ;
 ; ****************************** MACROS / REGISTER DEFINES *****************************
 ; register usage
-.def temp = R16
-.def temp2 = R17
+.def temp			= R16
+.def temp2			= R17
+;					R18 and 19 are used in timers
+.def duty_cycle		= R20
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Macro: COMMAND MODE: 
@@ -39,9 +41,9 @@
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Macro: SEND_BY_NIBBLE: 
+; Macro: DATA_SEND: 
 ; Purpose: sends the contents of temp2 nibble by nibble to data pins
-.macro SEND_BY_NIBBLE
+.macro DATA_SEND
 	swap temp2			; get upper nibble ready
 	OUT PORTC, temp2	; send upper nibble
 	rcall LCDStrobe		; flash enable 
@@ -112,19 +114,17 @@ start:
 	rcall delayTx1ms
 
 ; print test character to screen
-	rcall sendTest
+	rcall printScreen
 
 ; create static string in program memory
-/*
-.cseg
-	msg1: .db "DC = ", 0x00
-	ldi r30,LOW(2*msg1) ; load Z register low
-	ldi r31,HIGH(2*msg1) ; load Z register high
+;.cseg
+;	msg1: .db "DC = ", 0x00
+;	ldi r30,LOW(2*msg1) ; load Z register low
+;	ldi r31,HIGH(2*msg1) ; load Z register high
 
-	CHAR_MODE ; make sure in character mode
-	CLEAR_E ; make sure E is cleared
-	rcall displayCString
-	*/
+;	CHAR_MODE ; make sure in character mode
+;	CLEAR_E ; make sure E is cleared
+;	rcall displayCString
 
 	bruh:
 rjmp bruh
@@ -140,67 +140,107 @@ init_LCD:
 	rcall delayTx1ms
 
 	ldi temp2, 0x33 ; set 8-bit mode
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x32 ; set 8-bit mode (3) then 4 bit mode (2)
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x28 ; set 4-bit mode, two rows, 5x7 chars
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x01 ; clear display
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x0c ; display on, underline off, blink off
-	SEND_BY_NIBBLE
+	ldi temp2, 0b00001100 ; display on, underline off, blink off
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x06 ; display shift off, address auto increment
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 								
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; function: sendTest
-; purpose: send test string to lcd
-sendTest:
+; function: printScreen
+; purpose: prints data to the string
+printScreen:
 	CHAR_MODE
 
-	// send bruh
-	ldi temp2, 0b01000010 
-	SEND_BY_NIBBLE
+	ldi duty_cycle, 00000010	; upper four denote first number, lower four denote second number - here = 01
 
+	// send DC = R2
+	ldi temp2, 0b01000100 
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0b01010010
-	SEND_BY_NIBBLE
-
+	ldi temp2, 0b01000011
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0b01010101
-	SEND_BY_NIBBLE
-
+	ldi temp2, 0b00010000
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0b01001000
-	SEND_BY_NIBBLE
-
+	ldi temp2, 0b00111101
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
+
+	// Insert spaces to get to next line
+	spaces:
+	ldi r18, 12
+	ldi temp2, 0b00010000
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+	dec r18
+	brne spaces
+
+	// send DC = R2
+	ldi temp2, 0b01000100 
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b01000011
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b00010000
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b00111101
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+
+	/*mov temp2, duty_cycle
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	swap temp2
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms*/
 
 	ret
 
