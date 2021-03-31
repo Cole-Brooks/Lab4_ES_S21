@@ -15,6 +15,7 @@
 ; Purpose: switches LCD to command mode
 .macro COMMAND_MODE
 	cbi PORTB,5
+	rcall LCDStrobe
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -22,6 +23,7 @@
 ; Purpose: switches LCD to data mode
 .macro CHAR_MODE
 	sbi PORTB, 5
+	rcall LCDStrobe
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,6 +31,7 @@
 ; Purpose: Clears the enable pin
 .macro CLEAR_E
 	cbi PORTB,3
+	;rcall LCDStrobe
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -45,11 +48,31 @@
 	swap temp2			; get upper nibble ready
 	OUT PORTC, temp2	; send upper nibble
 	rcall LCDStrobe		; flash enable 
-	ldi temp, 100		
-	rcall delayTx1ms	; wait a bit
+	rcall delay1ms
 	swap temp2			; get lower nibble ready
 	OUT PORTC, temp2	; send lower nibble
 	rcall LCDStrobe		
+	ldi temp, 50
+	rcall delayTx1ms
+.endmacro
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Macro: COMMAND_SEND: 
+; Purpose: sends the contents of temp2 nibble by nibble to data pins
+; NOTE: Make sure you're in the proper mode before sending data
+.macro DATA_SEND
+	;swap temp2			; get upper nibble ready
+	mov r27, temp2
+	OUT PORTC, r27
+	rcall LCDStrobe
+	ldi temp, 15
+	rcall delayTx1ms
+	mov r27, temp2
+	swap r27			; get lower nibble ready
+	OUT PORTC, r27
+	rcall LCDStrobe
+	ldi temp, 15
+	rcall delayTx1ms
 .endmacro
 
 ; LCD Connections
@@ -80,11 +103,15 @@
 
 ; ****************************** MAIN PROGRAM *******************************
 start:
-; init stack pointer to highest RAM address
+; init stack pointer to highest RAM address;
 	ldi temp, low(RAMEND)
 	out SPL, temp
 	ldi temp, high(RAMEND)
 	out SPH, temp
+
+	ldi temp, 0xff
+	out DDRC, temp
+	out DDRC, temp
 
 ; configure pins for data lines
 	sbi LCD_ddr, LCD_4
@@ -94,37 +121,92 @@ start:
 
 	ldi R17, 0x01
 
+	sbi DDRB, 3 ; enable
+	sbi DDRB, 5 ; RS
+	sbi DDRC, 0 ; D4
+	sbi DDRC, 1 ; D5
+	sbi DDRC, 2 ; D6
+	sbi DDRC, 3 ; D7
+
 ; init LCD
 	rcall init_LCD
 
+; print test character to screen
+	ldi temp, 255
+	rcall delayTx1s
+	CHAR_MODE
+	ldi temp, 255
+	rcall delayTx1s
+	.cseg msg1: .db "Hello",0x00
+	ldi r30, LOW(2*msg1)
+	ldi r31, HIGH(2*msg1)
+	rcall displayCString
 
-rjmp start
+	bruh:
+rjmp bruh
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: init_LCD
 ; purpose: initializes the LCD
 init_LCD:
-	ldi temp, 100
-	rcall delayTx1ms
+	rcall delay100ms
 
 	COMMAND_MODE
+	ldi temp,255
+	rcall delayTx1ms
+
 	; Send Commands Nibble by Nibble
 	ldi temp2, 0x33
-	SEND_BY_NIBBLE
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
 	ldi temp2, 0x32
-	SEND_BY_NIBBLE
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
 	ldi temp2, 0x28
-	SEND_BY_NIBBLE
-	ldi temp2, 0x01				; clear screen
-	SEND_BY_NIBBLE
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0x0E				; clear screen
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0x01
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
 	ldi temp2, 0x0c				; Display on, underline off, blink off
-	SEND_BY_NIBBLE
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
 	ldi temp2, 0x06
-	SEND_BY_NIBBLE				; Display shift off, address increment
+	DATA_SEND		
+	ldi temp,255
+	rcall delayTx1ms
+								
+	ret
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: sendTest
+; purpose: send test string to lcd
+sendTest:
 	CHAR_MODE
-	
 
+	ldi r25, 0x04
+	out PORTC, r25
+	rcall LCDStrobe
+	rcall delay100ms
+	ldi r25, 0x05
+	out PORTC, r25
+	rcall LCDStrobe
+	rcall delay100ms
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -132,9 +214,11 @@ init_LCD:
 ; purpose: flashes the rs port
 LCDStrobe:
 	SET_E
-	ldi temp, 2
-	rcall delayTx1ms
-	SET_E
+	nop
+	nop
+	nop
+	nop
+	CLEAR_E
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -156,4 +240,29 @@ delay1ms:
     brne L1
     dec  r18
     brne L1
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: delay100ms
+; purpose: delays for ~1ms (1004 us)
+delay100ms:
+	ldi temp, 100
+	rcall delayTx1ms
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: displayCString
+; purpose: writes a string to the LCD
+displayCString:
+	lpm		r0,Z+		; r0 <--first byte
+	tst		r0			; Reached end of message ?
+	breq	done		; Yes => quit
+	swap	r0			; Upper nibble in place
+	out		PORTC,r0	; Send upper nibble out
+	rcall	LCDStrobe	; Latch nibble
+	swap	r0          ; Lower nibble in place
+	out		PORTC,r0	; Send lower nibble out
+	rcall	LCDStrobe	; Latch nibble
+	rjmp	displayCstring
+done:
 	ret
