@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Wed Mar 31 14:12:36 2021
+AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Wed Mar 31 14:23:35 2021
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
@@ -1125,7 +1125,7 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
 000019 ef0f                      	ldi temp,255
 00001a d082                      	rcall delayTx1ms
                                  
-00001b e313                      	ldi temp2, 0x33 ; set 8-bit mode
+00001b e313                      	ldi temp2, 0x33 ; set 8-bit mode twice
 00001c 9512
 00001d b918
 00001e d077

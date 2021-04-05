@@ -139,7 +139,7 @@ init_LCD:
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x33 ; set 8-bit mode
+	ldi temp2, 0x33 ; set 8-bit mode twice
 	SEND_BY_NIBBLE
 	ldi temp,255
 	rcall delayTx1ms
