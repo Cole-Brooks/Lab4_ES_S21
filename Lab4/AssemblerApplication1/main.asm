@@ -7,14 +7,23 @@
 ;
 ; ****************************** MACROS / REGISTER DEFINES *****************************
 ; register usage
-.def temp = R16
-.def temp2 = R17
+.def temp						= R16
+.def temp2						= R17
+; R18 and 19 are used in timers
+.def duty_cycle_first			= R20
+.def duty_cycle_sec				= R21
+// NOTE: if LED_on_off != 0, then LED is on
+.def LED_on_off					= R22 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Macro: COMMAND MODE: 
 ; Purpose: switches LCD to command mode
+; NOTE: ANY SUBROUTINE THAT CALLS COMMAND MODE IS RESPONSIBLE
+;		FOR SWITCHING BACK TO CHAR MODE WHEN IT'S FINISHED
 .macro COMMAND_MODE
 	cbi PORTB,5
+	ldi temp, 40
+	rcall delayTx1ms
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -22,6 +31,8 @@
 ; Purpose: switches LCD to data mode
 .macro CHAR_MODE
 	sbi PORTB, 5
+	ldi temp, 40
+	rcall delayTx1ms
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -39,9 +50,11 @@
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Macro: SEND_BY_NIBBLE: 
+; Macro: DATA_SEND: 
 ; Purpose: sends the contents of temp2 nibble by nibble to data pins
-.macro SEND_BY_NIBBLE
+; NOTE: Make sure that you're in the mode you expect to be in when
+;		making DATA_SEND calls
+.macro DATA_SEND
 	swap temp2			; get upper nibble ready
 	OUT PORTC, temp2	; send upper nibble
 	rcall LCDStrobe		; flash enable 
@@ -105,26 +118,29 @@ start:
 	sbi DDRC, 1 ; D5
 	sbi DDRC, 2 ; D6
 	sbi DDRC, 3 ; D7
-
+	 
 ; init LCD
 	rcall init_LCD 
 	ldi temp, 255
 	rcall delayTx1ms
 
-; print test character to screen
-	rcall sendTest
+; init LED (default: ON) and Duty Cycle (50)
+	ldi duty_cycle_first, 0b00110101
+	ldi duty_cycle_sec, 0b00110000
+	ldi LED_on_off, 0x01
+
+; print screen
+	rcall printScreen
 
 ; create static string in program memory
-/*
-.cseg
-	msg1: .db "DC = ", 0x00
-	ldi r30,LOW(2*msg1) ; load Z register low
-	ldi r31,HIGH(2*msg1) ; load Z register high
+;.cseg
+;	msg1: .db "DC = ", 0x00
+;	ldi r30,LOW(2*msg1) ; load Z register low
+;	ldi r31,HIGH(2*msg1) ; load Z register high
 
-	CHAR_MODE ; make sure in character mode
-	CLEAR_E ; make sure E is cleared
-	rcall displayCString
-	*/
+;	CHAR_MODE ; make sure in character mode
+;	CLEAR_E ; make sure E is cleared
+;	rcall displayCString
 
 	bruh:
 rjmp bruh
@@ -134,73 +150,110 @@ rjmp bruh
 ; purpose: initializes the LCD
 init_LCD:
 	rcall delay100ms
-
+	
 	COMMAND_MODE
+
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x33 ; set 8-bit mode twice
-	SEND_BY_NIBBLE
+	ldi temp2, 0x33 ; set 8-bit mode
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x32 ; set 8-bit mode (3) then 4 bit mode (2)
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x28 ; set 4-bit mode, two rows, 5x7 chars
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x01 ; clear display
-	SEND_BY_NIBBLE
+	ldi temp2, LCD_clear ; clear display
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0x0c ; display on, underline off, blink off
-	SEND_BY_NIBBLE
+	ldi temp2, 0b00001100 ; display on, underline off, blink off
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
 	ldi temp2, 0x06 ; display shift off, address auto increment
-	SEND_BY_NIBBLE
+	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
-								
+
+	CHAR_MODE					
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; function: sendTest
-; purpose: send test string to lcd
-sendTest:
-	CHAR_MODE
+; function: printScreen
+; purpose: prints data to the string
+; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
+printScreen:
+	rcall printDCStatus
+	rcall printLedStatus
+	ret
 
-	// send bruh
-	ldi temp2, 0b01000010 
-	SEND_BY_NIBBLE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: printDCStatus
+; purpose: prints duty cycle in proper location
+; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
+printDCStatus:
+	// Move cursor to the right position
+	rcall moveCursorToDC
+	
+	// Duty Cycle digits
+	mov temp2, duty_cycle_first
+	DATA_SEND
+	rcall display_delay
+	mov temp2, duty_cycle_sec
+	DATA_SEND
+	rcall display_delay 
 
-	ldi temp,255
-	rcall delayTx1ms
+	ret
 
-	ldi temp2, 0b01010010
-	SEND_BY_NIBBLE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: printLedStatus
+; purpose: prints Led status in the proper location
+; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
+printLedStatus:
+	// Move cursor to the right position
+	rcall moveCursorToLED
 
-	ldi temp,255
-	rcall delayTx1ms
+	cpi LED_on_off, 0x00
+	breq off
 
-	ldi temp2, 0b01010101
-	SEND_BY_NIBBLE
+	// on
+	ldi temp2, 0b01001111
+	DATA_SEND
+	rcall display_delay
 
-	ldi temp,255
-	rcall delayTx1ms
+	ldi temp2, 0b01001110
+	DATA_SEND
+	rcall display_delay
 
-	ldi temp2, 0b01001000
-	SEND_BY_NIBBLE
+	ldi temp2, 0b00010000
+	DATA_SEND
+	rcall display_delay
+	ret
 
-	ldi temp,255
-	rcall delayTx1ms
+	// off
+	off:
+	ldi temp2, 0b01001111
+	DATA_SEND
+	rcall display_delay
+
+	ldi temp2, 0b01000110
+	DATA_SEND
+	rcall display_delay
+
+	ldi temp2, 0b01000110
+	DATA_SEND
+	rcall display_delay
 
 	ret
 
@@ -246,6 +299,15 @@ delay100ms:
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: display_delay
+; purpose: delays for ~40 ms. Enough elapsed time for 
+;		  display to prep for next DATA_SEND
+display_delay:
+	ldi temp, 40
+	rcall delayTx1ms
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: displayCString
 ; purpose: writes a string to the LCD
 displayCString:
@@ -260,4 +322,95 @@ displayCString:
 	rcall	LCDStrobe	; Latch nibble
 	rjmp	displayCstring
 done:
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: moveCursorToDC
+; purpose: moves LCD cursor to the proper position
+;		   to rewrite the Duty Cycle
+moveCursorToDC:
+	COMMAND_MODE
+
+	// Move to line 1
+	rcall display_delay
+	ldi temp, 0x00
+	out PORTC,temp
+	rcall LCDStrobe
+	rcall display_delay
+	ldi temp, 0x02
+	out PORTC,temp
+	rcall LCDStrobe
+
+	CHAR_MODE
+
+	// Move cursor to proper position by rewriting top of screen
+	// TODO - move cursor without rewriting characters -- takes too long
+	// and makes the screen feel sluggish.
+	ldi temp2, 0b01000100 
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b01000011
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b00111010
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b00010000
+	DATA_SEND
+	rcall display_delay
+
+	ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: moveCursorToLED
+; purpose: moves LCD cursor to the proper position to 
+;		   rewrite the LED status
+moveCursorToLED:
+	COMMAND_MODE
+
+	ldi temp, 0x0C
+	out PORTC,temp
+	rcall LCDStrobe
+	// Cursor offset
+	ldi temp,0x00
+	out PORTC, temp
+	rcall LCDStrobe
+
+	CHAR_MODE
+
+
+	// Move to LED position by rewriting LED: 
+	ldi temp2, 0b01001100
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b01000101
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b01000100
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b00111010
+	DATA_SEND
+	rcall display_delay
+	ldi temp2, 0b00010000
+	DATA_SEND
+	rcall display_delay
+
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: moveToLine2
+; purpose: moves LCD cursor to line 2
+moveToLine2:
+	COMMAND_MODE
+
+	ldi temp, 0x0C
+	out PORTC,temp
+	rcall LCDStrobe
+	// Cursor offset
+	ldi temp,0x00
+	out PORTC, temp
+	rcall LCDStrobe
+
+	CHAR_MODE
+
 	ret
