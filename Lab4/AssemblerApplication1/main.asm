@@ -15,8 +15,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Macro: COMMAND MODE: 
 ; Purpose: switches LCD to command mode
+; NOTE: ANY SUBROUTINE THAT CALLS COMMAND MODE IS RESPONSIBLE
+;		FOR SWITCHING BACK TO CHAR MODE WHEN IT'S FINISHED
 .macro COMMAND_MODE
 	cbi PORTB,5
+	ldi temp, 40
+	rcall delayTx1ms
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -24,6 +28,8 @@
 ; Purpose: switches LCD to data mode
 .macro CHAR_MODE
 	sbi PORTB, 5
+	ldi temp, 40
+	rcall delayTx1ms
 .endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,6 +49,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Macro: DATA_SEND: 
 ; Purpose: sends the contents of temp2 nibble by nibble to data pins
+; NOTE: Make sure that you're in the mode you expect to be in when
+;		making DATA_SEND calls
 .macro DATA_SEND
 	swap temp2			; get upper nibble ready
 	OUT PORTC, temp2	; send upper nibble
@@ -134,8 +142,9 @@ rjmp bruh
 ; purpose: initializes the LCD
 init_LCD:
 	rcall delay100ms
-
+	
 	COMMAND_MODE
+
 	ldi temp,255
 	rcall delayTx1ms
 
@@ -168,18 +177,18 @@ init_LCD:
 	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
-								
+
+	CHAR_MODE					
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: printScreen
 ; purpose: prints data to the string
+; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
 printScreen:
-	CHAR_MODE
-
 	ldi duty_cycle, 00000010	; upper four denote first number, lower four denote second number - here = 01
 
-	// send DC = R2
+	// send DC: R2
 	ldi temp2, 0b01000100 
 	DATA_SEND
 	ldi temp,255
@@ -190,33 +199,7 @@ printScreen:
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0b00010000
-	DATA_SEND
-	ldi temp,255
-	rcall delayTx1ms
-
-	ldi temp2, 0b00111101
-	DATA_SEND
-	ldi temp,255
-	rcall delayTx1ms
-
-	// Insert spaces to get to next line
-	spaces:
-	ldi r18, 12
-	ldi temp2, 0b00010000
-	DATA_SEND
-	ldi temp,255
-	rcall delayTx1ms
-	dec r18
-	brne spaces
-
-	// send DC = R2
-	ldi temp2, 0b01000100 
-	DATA_SEND
-	ldi temp,255
-	rcall delayTx1ms
-
-	ldi temp2, 0b01000011
+	ldi temp2, 0b00111010
 	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
@@ -226,21 +209,43 @@ printScreen:
 	ldi temp,255
 	rcall delayTx1ms
 
-	ldi temp2, 0b00111101
+	// send "LED: ON/OFF" to screen
+	rcall moveToLine2
+
+	ldi temp2, 0b01001100
 	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-
-	/*mov temp2, duty_cycle
+	ldi temp2, 0b01000101
 	DATA_SEND
 	ldi temp,255
 	rcall delayTx1ms
 
-	swap temp2
+	ldi temp2, 0b01000100
 	DATA_SEND
 	ldi temp,255
-	rcall delayTx1ms*/
+	rcall delayTx1ms
+
+	ldi temp2, 0b00111010
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b00010000
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b01001111
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
+
+	ldi temp2, 0b01001110
+	DATA_SEND
+	ldi temp,255
+	rcall delayTx1ms
 
 	ret
 
@@ -300,4 +305,21 @@ displayCString:
 	rcall	LCDStrobe	; Latch nibble
 	rjmp	displayCstring
 done:
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: moveToLine2
+; purpose: moves LCD cursor to line 2
+moveToLine2:
+	COMMAND_MODE
+
+	ldi temp, 0x0C
+	out PORTC,temp
+	rcall LCDStrobe
+	ldi temp,0x00
+	out PORTC, temp
+	rcall LCDStrobe
+
+	CHAR_MODE
+
 	ret

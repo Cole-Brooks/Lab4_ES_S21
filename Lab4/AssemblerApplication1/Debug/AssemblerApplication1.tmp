@@ -22,17 +22,17 @@
   <FILE>AssemblerApplication1.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <start><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>85</LINE></start>
-  <init_LCD><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>135</LINE></init_LCD>
-  <delayTx1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>262</LINE></delayTx1ms>
-  <printScreen><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>177</LINE></printScreen>
-  <bruh><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>129</LINE></bruh>
-  <delay100ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>283</LINE></delay100ms>
-  <LCDStrobe><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>250</LINE></LCDStrobe>
-  <delay1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>271</LINE></delay1ms>
-  <spaces><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>204</LINE></spaces>
-  <L1><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>274</LINE></L1>
-  <displayCString><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>291</LINE></displayCString>
-  <done><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>302</LINE></done>
+  <start><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>93</LINE></start>
+  <init_LCD><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>143</LINE></init_LCD>
+  <delayTx1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>267</LINE></delayTx1ms>
+  <printScreen><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>188</LINE></printScreen>
+  <bruh><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>137</LINE></bruh>
+  <delay100ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>288</LINE></delay100ms>
+  <LCDStrobe><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>255</LINE></LCDStrobe>
+  <delay1ms><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>276</LINE></delay1ms>
+  <moveToLine2><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>313</LINE></moveToLine2>
+  <L1><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>279</LINE></L1>
+  <displayCString><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>296</LINE></displayCString>
+  <done><FILE>C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>307</LINE></done>
  </LABELS>
 </ASSEMBLER_INFO>
