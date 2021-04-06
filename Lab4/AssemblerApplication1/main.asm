@@ -257,6 +257,9 @@ pbsDebounce:
 ; purpose: Handles RPG changes. Should change duty cycle of LED
 ;		   Called via interrupt.
 rpgChangeDetected:
+	cpi LED_on_off, 0x00
+	breq force_ret
+
 	sbic PIND, 4
 	rcall incrementDC
 
