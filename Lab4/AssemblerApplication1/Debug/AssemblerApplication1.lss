@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Mon Apr 05 11:24:45 2021
+AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Mon Apr 05 19:05:33 2021
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
@@ -1117,16 +1117,6 @@ AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded 
                                  
                                  ; print screen
 000018 d053                      	rcall printScreen
-                                 
-                                 	/*ldi LED_on_off, 0x01
-                                 	rcall printLedStatus
-                                 
-                                 	ldi duty_cycle_first, 0b00110010
-                                 	ldi duty_cycle_sec, 0b00110101
-                                 	rcall printDCStatus
-                                 
-                                 	ldi LED_on_off, 0x00
-                                 	rcall printLedStatus*/
                                  
                                  ; create static string in program memory
                                  ;.cseg
