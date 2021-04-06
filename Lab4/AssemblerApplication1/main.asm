@@ -319,6 +319,14 @@ rpgChangeDetected:
 		ret
 
 	decrementDC:
+		; check if dc = 5. If it is, just force return
+		cpi duty_cycle_first, 0b00110000
+		brne not_dc_min
+		cpi duty_cycle_sec, 0b00110101
+		brne not_dc_min
+		rjmp force_ret
+
+		not_dc_min:
 		; check if led off
 		cpi ledDC,101
 		brne led_ONdec
