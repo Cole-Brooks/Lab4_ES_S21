@@ -5,16 +5,26 @@
 ; Authors : Cole Brooks,
 ;			Thomas Butler
 ;
+
+.include "m328Pdef.inc"
+.cseg
+
+
 ; ****************************** MACROS / REGISTER DEFINES *****************************
 ; register usage
 .def temp						= R16
 .def temp2						= R17
+.def temp3						= R18
 ; R18 and 19 are used in timers
 .def duty_cycle_first			= R20
 .def duty_cycle_sec				= R21
 .def duty_cycle_third			= R22 // only used when duty cycle = 100
 // NOTE: if LED_on_off != 0, then LED is on
 .def LED_on_off					= R23 
+
+;;;;; if works replace with r20 and delete r21
+.def ledDC						= R24
+
 
 ; INTERRUPT VECTOR TABLE
 .org 0
@@ -156,6 +166,10 @@ start:
 	sbi DDRC, 2 ; D6
 	sbi DDRC, 3 ; D7
 
+; PD5 - OC0B -> to transistor (external output for the Timer/Counter0 
+;Compare Match B - must be set as output )
+	sbi DDRD,5 ; set pin as output
+
 ; configure input
 	cbi DDRD, 2
 
@@ -164,12 +178,27 @@ start:
 	ldi temp, 255
 	rcall delayTx1ms
 
-; init LED (default: ON) and Duty Cycle (50)
+; init LED (default: OFF) and Duty Cycle (50)
 	ldi duty_cycle_first, 0b00110101
 	ldi duty_cycle_sec, 0b00110000
 	ldi duty_cycle_third, 0b00100000
-	ldi LED_on_off, 0x01
+	ldi LED_on_off, 0x00
 
+; configure TIMER0 as PWM 
+	ldi temp,0b00110011 ; fast PWM mode,inverting mode 
+	out TCCR0A, temp 
+	ldi temp,0b00001011 ; 64 prescale
+	out TCCR0B,temp 
+	ldi temp,100  ; TOP = 100
+	out OCR0A,temp
+	ldi temp,0 ; start counter at zero
+	out TCNT0,temp
+; brightness starts at 50%, LED off
+	ldi ledDC,49 ;increments 
+	ldi temp,101 
+	out OCR0B,temp
+
+; interrupt global enable
 	sei
 
 main:
@@ -203,12 +232,15 @@ rjmp bruh
 
 	// The led is off, turn it on
 	ldi LED_on_off, 0x01
+	out OCR0B,ledDC
 	rcall printLedStatus
 	reti
 
 	// The led is on, turn it off
 	toggle_off:
 	ldi LED_on_off, 0x00
+	ldi temp,101
+	out OCR0B,temp
 	rcall printLedStatus
 	reti
 
@@ -231,12 +263,24 @@ rjmp bruh
 
 	;************* Helper Functions *****************;
 	incrementDC:
-		; first, check if duty cycle = 100, if it is, just return
-		cpi duty_cycle_third, 0b00110000
+		; check if led off
+		cpi ledDC,101
+		brne led_ONinc
+		
+
+		led_ONinc:
+		; check if ledDC at TOP
+		cpi ledDC,99
 		brne not_max
 
 		ret
+
 		not_max:
+		; increase by 5%
+		ldi temp,5
+		sub ledDC,temp
+		out OCR0B, ledDC ; update led duty cycle
+
 
 		; Now, check if duty cycle = 95. If it is, then need to add third digit
 		cpi duty_cycle_first, 0b00111001
@@ -264,15 +308,25 @@ rjmp bruh
 		ret
 
 	decrementDC:
-		; first, check if dc = 0, if it is, just return
-		cpi duty_cycle_first, 0b00110000
-		brne not_min
-		cpi duty_cycle_sec, 0b00110000
+		; check if led off
+		cpi ledDC,101
+		brne led_ONdec
+		
+		led_ONdec:
+		; check if ledDC = 4
+		cpi ledDC,4
 		brne not_min
 
 		ret
-		not_min:
 
+		not_min:
+		; decrease by 5%
+		ldi temp,5
+		add ledDC,temp
+		out OCR0B, ledDC ; update led duty cycle
+		
+
+	
 		; next, check if dc = 100. If it is, we need to set it to 95
 		cpi duty_cycle_third, 0b00110000
 		brne not_max_dec
@@ -355,7 +409,7 @@ printScreen:
 printDCStatus:
 	// Move cursor to the right position
 	rcall moveCursorToDC
-	
+
 	// Duty Cycle digits
 	mov temp2, duty_cycle_first
 	DATA_SEND
@@ -377,8 +431,10 @@ printLedStatus:
 	// Move cursor to the right position
 	rcall moveCursorToLED
 
-	cpi LED_on_off, 0x00
+	;cpi LED_on_off, 0x00
+	cpi led_on_off,0x00
 	breq off
+
 
 	// on
 	ldi temp2, 0b01001111

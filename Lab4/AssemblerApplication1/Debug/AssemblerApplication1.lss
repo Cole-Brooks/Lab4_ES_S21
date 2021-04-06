@@ -1,8 +1,10 @@
 
-AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Mon Apr 05 19:05:33 2021
+AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Tue Apr 06 03:17:20 2021
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
+C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
+C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
                                  
                                  ;
                                  
@@ -991,15 +993,105 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
                                  ; Authors : Cole Brooks,
                                  ;			Thomas Butler
                                  ;
+                                 
+                                 .include "m328Pdef.inc"
+                                 
+                                 ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
+                                 ;*************************************************************************
+                                 ;* A P P L I C A T I O N   N O T E   F O R   T H E   A V R   F A M I L Y
+                                 ;* 
+                                 ;* Number            : AVR000
+                                 ;* File Name         : "m328Pdef.inc"
+                                 ;* Title             : Register/Bit Definitions for the ATmega328P
+                                 ;* Date              : 2011-02-09
+                                 ;* Version           : 2.35
+                                 ;* Support E-mail    : avr@atmel.com
+                                 ;* Target MCU        : ATmega328P
+                                 ;* 
+                                 ;* DESCRIPTION
+                                 ;* When including this file in the assembly program file, all I/O register 
+                                 ;* names and I/O register bit names appearing in the data book can be used.
+                                 ;* In addition, the six registers forming the three data pointers X, Y and 
+                                 ;* Z have been assigned names XL - ZH. Highest RAM address for Internal 
+                                 ;* SRAM is also defined 
+                                 ;* 
+                                 ;* The Register names are represented by their hexadecimal address.
+                                 ;* 
+                                 ;* The Register Bit names are represented by their bit number (0-7).
+                                 ;* 
+                                 ;* Please observe the difference in using the bit names with instructions
+                                 ;* such as "sbr"/"cbr" (set/clear bit in register) and "sbrs"/"sbrc"
+                                 ;* (skip if bit in register set/cleared). The following example illustrates
+                                 ;* this:
+                                 ;* 
+                                 ;* in    r16,PORTB             ;read PORTB latch
+                                 ;* sbr   r16,(1<<PB6)+(1<<PB5) ;set PB6 and PB5 (use masks, not bit#)
+                                 ;* out   PORTB,r16             ;output to PORTB
+                                 ;* 
+                                 ;* in    r16,TIFR              ;read the Timer Interrupt Flag Register
+                                 ;* sbrc  r16,TOV0              ;test the overflow flag (use bit#)
+                                 ;* rjmp  TOV0_is_set           ;jump if set
+                                 ;* ...                         ;otherwise do something else
+                                 ;*************************************************************************
+                                 
+                                 #ifndef _M328PDEF_INC_
+                                 #endif  /* _M328PDEF_INC_ */
+                                 
+                                 ; ***** END OF FILE ******************************************************
+                                 .cseg
+                                 
+                                 
                                  ; ****************************** MACROS / REGISTER DEFINES *****************************
                                  ; register usage
                                  .def temp						= R16
                                  .def temp2						= R17
+                                 .def temp3						= R18
                                  ; R18 and 19 are used in timers
                                  .def duty_cycle_first			= R20
                                  .def duty_cycle_sec				= R21
+                                 .def duty_cycle_third			= R22 // only used when duty cycle = 100
                                  // NOTE: if LED_on_off != 0, then LED is on
-                                 .def LED_on_off					= R22 
+                                 .def LED_on_off					= R23 
+                                 
+                                 ;;;;; if works replace with r20 and delete r21
+                                 .def ledDC						= R24
+                                 
+                                 
+                                 ; INTERRUPT VECTOR TABLE
+                                 .org 0
+000000 c033                      rjmp RESET
+                                 .org INT0addr
+000002 c06f                      rjmp toggleLed
+                                 .org 0x000A
+00000a c072                      rjmp rpgChangeDetected
+                                 .org 0x34
+                                 
+                                 RESET:
+                                 	; Set interrupt to trigger when input is low
+000034 e003                      	ldi temp, (1<<ISC01)|(1<<ISC00)
+000035 9300 0069                 	sts EICRA, temp
+                                 
+000037 e001                      	ldi temp, (1<<INT0)
+000038 bb0d                      	out EIMSK, temp
+                                 
+000039 e001                      	ldi temp, (1<<INTF0)
+00003a bb0c                      	out EIFR, temp
+                                 
+00003b 2700                      	clr temp
+00003c b90a                      	out DDRD, temp
+                                 
+                                 	// 
+00003d e004                      	ldi temp, 0b00000100
+00003e 9300 0068                 	sts PCICR, temp
+                                 
+                                 	// Enable pins 3 and 4 for internal interrupt
+000040 e900                      	ldi temp, 0b10010000
+000041 9300 006d                 	sts PCMSK2, temp
+                                 
+                                 	; Global interrupt enable
+000043 9478                      	sei
+                                 
+                                 
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; Macro: COMMAND MODE: 
@@ -1059,7 +1151,7 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
                                  .equ LCD_4 = PORTC0
                                  .equ LCD_5 = PORTC1
                                  .equ LCD_6 = PORTC2
-                                 .equ LCD_7 = PORTC3
+                                 .equ LCD_7 = PORTC3 
                                  
                                  .equ LCD_rs = PORTB5
                                  .equ LCD_e = PORTB3
@@ -1077,46 +1169,72 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
                                  .equ LCD_4_bit_mode_init_2 = 0x32		; 3 different commands. 1 initializes in 8 bit mode
                                  .equ LCD_4_bit_mode_set = 0x28			; 2 moves it to 
                                  
-                                 
                                  ; ****************************** MAIN PROGRAM *******************************
                                  start:
                                  ; init stack pointer to highest RAM address;
-000000 ef0f                      	ldi temp, low(RAMEND)
-000001 bf0d                      	out SPL, temp
-000002 e008                      	ldi temp, high(RAMEND)
-000003 bf0e                      	out SPH, temp
+000044 94f8                      	cli
+000045 ef0f                      	ldi temp, low(RAMEND)
+000046 bf0d                      	out SPL, temp
+000047 e008                      	ldi temp, high(RAMEND)
+000048 bf0e                      	out SPH, temp
                                  
-000004 ef0f                      	ldi temp, 0xff
-000005 b907                      	out DDRC, temp
-000006 b907                      	out DDRC, temp
+000049 ef0f                      	ldi temp, 0xff
+00004a b907                      	out DDRC, temp
+00004b b907                      	out DDRC, temp
                                  
                                  ; configure pins for data lines
-000007 9a50                      	sbi LCD_ddr, LCD_4
-000008 9a51                      	sbi LCD_ddr, LCD_5
-000009 9a52                      	sbi LCD_ddr, LCD_6 
-00000a 9a53                      	sbi LCD_ddr, LCD_7
+00004c 9a50                      	sbi LCD_ddr, LCD_4
+00004d 9a51                      	sbi LCD_ddr, LCD_5
+00004e 9a52                      	sbi LCD_ddr, LCD_6 
+00004f 9a53                      	sbi LCD_ddr, LCD_7
                                  
-00000b e011                      	ldi R17, 0x01
+000050 e011                      	ldi R17, 0x01
                                  
-00000c 9a23                      	sbi DDRB, 3 ; enable
-00000d 9a25                      	sbi DDRB, 5 ; RS
-00000e 9a38                      	sbi DDRC, 0 ; D4
-00000f 9a39                      	sbi DDRC, 1 ; D5
-000010 9a3a                      	sbi DDRC, 2 ; D6
-000011 9a3b                      	sbi DDRC, 3 ; D7
-                                 	 
+000051 9a23                      	sbi DDRB, 3 ; enable
+000052 9a25                      	sbi DDRB, 5 ; RS
+000053 9a38                      	sbi DDRC, 0 ; D4
+000054 9a39                      	sbi DDRC, 1 ; D5
+000055 9a3a                      	sbi DDRC, 2 ; D6
+000056 9a3b                      	sbi DDRC, 3 ; D7
+                                 
+                                 ; PD5 - OC0B -> to transistor (external output for the Timer/Counter0 
+                                 ;Compare Match B - must be set as output )
+000057 9a55                      	sbi DDRD,5 ; set pin as output
+                                 
+                                 ; configure input
+000058 9852                      	cbi DDRD, 2
+                                 
                                  ; init LCD
-000012 d007                      	rcall init_LCD 
-000013 ef0f                      	ldi temp, 255
-000014 d0c0                      	rcall delayTx1ms
+000059 d059                      	rcall init_LCD 
+00005a ef0f                      	ldi temp, 255
+00005b d11d                      	rcall delayTx1ms
                                  
-                                 ; init LED (default: ON) and Duty Cycle (50)
-000015 e345                      	ldi duty_cycle_first, 0b00110101
-000016 e350                      	ldi duty_cycle_sec, 0b00110000
-000017 e061                      	ldi LED_on_off, 0x01
+                                 ; init LED (default: OFF) and Duty Cycle (50)
+00005c e345                      	ldi duty_cycle_first, 0b00110101
+00005d e350                      	ldi duty_cycle_sec, 0b00110000
+00005e e260                      	ldi duty_cycle_third, 0b00100000
+00005f e070                      	ldi LED_on_off, 0x00
                                  
+                                 ; configure TIMER0 as PWM 
+000060 e303                      	ldi temp,0b00110011 ; fast PWM mode,inverting mode 
+000061 bd04                      	out TCCR0A, temp 
+000062 e00b                      	ldi temp,0b00001011 ; 64 prescale
+000063 bd05                      	out TCCR0B,temp 
+000064 e604                      	ldi temp,100  ; TOP = 100
+000065 bd07                      	out OCR0A,temp
+000066 e000                      	ldi temp,0 ; start counter at zero
+000067 bd06                      	out TCNT0,temp
+                                 ; brightness starts at 50%, LED off
+000068 e381                      	ldi ledDC,49 ;increments 
+000069 e605                      	ldi temp,101 
+00006a bd08                      	out OCR0B,temp
+                                 
+                                 ; interrupt global enable
+00006b 9478                      	sei
+                                 
+                                 main:
                                  ; print screen
-000018 d053                      	rcall printScreen
+00006c d098                      	rcall printScreen
                                  
                                  ; create static string in program memory
                                  ;.cseg
@@ -1129,112 +1247,243 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
                                  ;	rcall displayCString
                                  
                                  	bruh:
-000019 cfff                      rjmp bruh
+00006d 0000                      	nop
+00006e 0000                      	nop
+00006f 0000                      	nop
+000070 0000                      	nop
+000071 cffb                      rjmp bruh
                                  
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; function: toggleLED
+                                 ; purpose: Handles the push button input. Toggles the 
+                                 ;		   Current status of the LED (on/off)
+                                  toggleLED:
+000072 3070                      	cpi LED_on_off, 0x00
+000073 f421                      	brne toggle_off
+                                 
+                                 	// The led is off, turn it on
+000074 e071                      	ldi LED_on_off, 0x01
+000075 bd88                      	out OCR0B,ledDC
+000076 d0b4                      	rcall printLedStatus
+000077 9518                      	reti
+                                 
+                                 	// The led is on, turn it off
+                                 	toggle_off:
+000078 e070                      	ldi LED_on_off, 0x00
+000079 e605                      	ldi temp,101
+00007a bd08                      	out OCR0B,temp
+00007b d0af                      	rcall printLedStatus
+00007c 9518                      	reti
+                                 
+                                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                                 ; function: rpgChangeDetected
+                                 ; purpose: Handles RPG changes. Should change duty cycle of LED
+                                 ;		   Called via interrupt.
+                                  rpgChangeDetected:
+00007d 994c                      	sbic PIND, 4
+00007e d006                      	rcall incrementDC
+                                 
+00007f 994f                      	sbic PIND, 7
+000080 d01c                      	rcall decrementDC
+                                 
+000081 e604                      	ldi temp, 100
+000082 d0f6                      	rcall delayTx1ms
+                                 
+000083 d084                      	rcall printDCStatus
+000084 9518                      	reti
+                                 
+                                 	;************* Helper Functions *****************;
+                                 	incrementDC:
+                                 		; check if led off
+000085 3685                      		cpi ledDC,101
+000086 f401                      		brne led_ONinc
+                                 		
+                                 
+                                 		led_ONinc:
+                                 		; check if ledDC at TOP
+000087 3683                      		cpi ledDC,99
+000088 f409                      		brne not_max
+                                 
+000089 9508                      		ret
+                                 
+                                 		not_max:
+                                 		; increase by 5%
+00008a e005                      		ldi temp,5
+00008b 1b80                      		sub ledDC,temp
+00008c bd88                      		out OCR0B, ledDC ; update led duty cycle
+                                 
+                                 
+                                 		; Now, check if duty cycle = 95. If it is, then need to add third digit
+00008d 3349                      		cpi duty_cycle_first, 0b00111001
+00008e f431                      		brne third_set
+00008f 3355                      		cpi duty_cycle_sec, 0b00110101
+000090 f421                      		brne third_set
+                                 
+000091 e341                      		ldi duty_cycle_first, 0b00110001
+000092 e350                      		ldi duty_cycle_sec, 0b00110000
+000093 e360                      		ldi duty_cycle_third, 0b00110000
+000094 9508                      		ret
+                                 
+                                 		third_set:
+                                 		; If second digit is zero, then add five to this register
+                                 		; If second digit is five, set this register to 0 and increment first digit
+000095 3355                      		cpi duty_cycle_sec, 0b00110101
+000096 f019                      		breq incrementFirst
+000097 e005                      		ldi temp, 0b00000101
+000098 0f50                      		ADD duty_cycle_sec, temp
+000099 9508                      		ret
+                                 
+                                 		incrementFirst:
+00009a e001                      		ldi temp, 0b00000001
+00009b 0f40                      		ADD duty_cycle_first, temp
+00009c 9508                      		ret
+                                 
+                                 	decrementDC:
+                                 		; check if led off
+00009d 3685                      		cpi ledDC,101
+00009e f401                      		brne led_ONdec
+                                 		
+                                 		led_ONdec:
+                                 		; check if ledDC = 4
+00009f 3084                      		cpi ledDC,4
+0000a0 f409                      		brne not_min
+                                 
+0000a1 9508                      		ret
+                                 
+                                 		not_min:
+                                 		; decrease by 5%
+0000a2 e005                      		ldi temp,5
+0000a3 0f80                      		add ledDC,temp
+0000a4 bd88                      		out OCR0B, ledDC ; update led duty cycle
+                                 		
+                                 
+                                 	
+                                 		; next, check if dc = 100. If it is, we need to set it to 95
+0000a5 3360                      		cpi duty_cycle_third, 0b00110000
+0000a6 f421                      		brne not_max_dec
+                                 
+0000a7 e349                      		ldi duty_cycle_first, 0b00111001
+0000a8 e355                      		ldi duty_cycle_sec, 0b00110101
+0000a9 e260                      		ldi duty_cycle_third, 0b00100000
+0000aa 9508                      		ret
+                                 
+                                 		not_max_dec:
+0000ab 3355                      		cpi duty_cycle_sec, 0b00110101
+0000ac f019                      		breq decrement_sec
+                                 
+0000ad e001                      		ldi temp, 0b00000001
+0000ae 1b40                      		SUB duty_cycle_first, temp
+0000af 9508                      		ret
+                                 
+                                 		decrement_sec:
+0000b0 e005                      		ldi temp, 0b00000101
+0000b1 1b50                      		SUB duty_cycle_sec, temp
+                                 
+0000b2 9508                      		ret
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: init_LCD
                                  ; purpose: initializes the LCD
                                  init_LCD:
-00001a d0c5                      	rcall delay100ms
+0000b3 d0d0                      	rcall delay100ms
                                  	
-00001b 982d
-00001c e208
-00001d d0b7                      	COMMAND_MODE
+0000b4 982d
+0000b5 e208
+0000b6 d0c2                      	COMMAND_MODE
                                  
-00001e ef0f                      	ldi temp,255
-00001f d0b5                      	rcall delayTx1ms
+0000b7 ef0f                      	ldi temp,255
+0000b8 d0c0                      	rcall delayTx1ms
                                  
-000020 e313                      	ldi temp2, 0x33 ; set 8-bit mode
-000021 9512
-000022 b918
-000023 d0aa
-000024 d0b4
-000025 9512
-000026 b918
-000027 d0a6
-000028 e302
-000029 d0ab                      	DATA_SEND
-00002a ef0f                      	ldi temp,255
-00002b d0a9                      	rcall delayTx1ms
+0000b9 e313                      	ldi temp2, 0x33 ; set 8-bit mode
+0000ba 9512
+0000bb b918
+0000bc d0b5
+0000bd d0bf
+0000be 9512
+0000bf b918
+0000c0 d0b1
+0000c1 e302
+0000c2 d0b6                      	DATA_SEND
+0000c3 ef0f                      	ldi temp,255
+0000c4 d0b4                      	rcall delayTx1ms
                                  
-00002c e312                      	ldi temp2, 0x32 ; set 8-bit mode (3) then 4 bit mode (2)
-00002d 9512
-00002e b918
-00002f d09e
-000030 d0a8
-000031 9512
-000032 b918
-000033 d09a
-000034 e302
-000035 d09f                      	DATA_SEND
-000036 ef0f                      	ldi temp,255
-000037 d09d                      	rcall delayTx1ms
+0000c5 e312                      	ldi temp2, 0x32 ; set 8-bit mode (3) then 4 bit mode (2)
+0000c6 9512
+0000c7 b918
+0000c8 d0a9
+0000c9 d0b3
+0000ca 9512
+0000cb b918
+0000cc d0a5
+0000cd e302
+0000ce d0aa                      	DATA_SEND
+0000cf ef0f                      	ldi temp,255
+0000d0 d0a8                      	rcall delayTx1ms
                                  
-000038 e218                      	ldi temp2, 0x28 ; set 4-bit mode, two rows, 5x7 chars
-000039 9512
-00003a b918
-00003b d092
-00003c d09c
-00003d 9512
-00003e b918
-00003f d08e
-000040 e302
-000041 d093                      	DATA_SEND
-000042 ef0f                      	ldi temp,255
-000043 d091                      	rcall delayTx1ms
+0000d1 e218                      	ldi temp2, 0x28 ; set 4-bit mode, two rows, 5x7 chars
+0000d2 9512
+0000d3 b918
+0000d4 d09d
+0000d5 d0a7
+0000d6 9512
+0000d7 b918
+0000d8 d099
+0000d9 e302
+0000da d09e                      	DATA_SEND
+0000db ef0f                      	ldi temp,255
+0000dc d09c                      	rcall delayTx1ms
                                  
-000044 e011                      	ldi temp2, LCD_clear ; clear display
-000045 9512
-000046 b918
-000047 d086
-000048 d090
-000049 9512
-00004a b918
-00004b d082
-00004c e302
-00004d d087                      	DATA_SEND
-00004e ef0f                      	ldi temp,255
-00004f d085                      	rcall delayTx1ms
+0000dd e011                      	ldi temp2, LCD_clear ; clear display
+0000de 9512
+0000df b918
+0000e0 d091
+0000e1 d09b
+0000e2 9512
+0000e3 b918
+0000e4 d08d
+0000e5 e302
+0000e6 d092                      	DATA_SEND
+0000e7 ef0f                      	ldi temp,255
+0000e8 d090                      	rcall delayTx1ms
                                  
-000050 e01c                      	ldi temp2, 0b00001100 ; display on, underline off, blink off
-000051 9512
-000052 b918
-000053 d07a
-000054 d084
-000055 9512
-000056 b918
-000057 d076
-000058 e302
-000059 d07b                      	DATA_SEND
-00005a ef0f                      	ldi temp,255
-00005b d079                      	rcall delayTx1ms
+0000e9 e01c                      	ldi temp2, 0b00001100 ; display on, underline off, blink off
+0000ea 9512
+0000eb b918
+0000ec d085
+0000ed d08f
+0000ee 9512
+0000ef b918
+0000f0 d081
+0000f1 e302
+0000f2 d086                      	DATA_SEND
+0000f3 ef0f                      	ldi temp,255
+0000f4 d084                      	rcall delayTx1ms
                                  
-00005c e016                      	ldi temp2, 0x06 ; display shift off, address auto increment
-00005d 9512
-00005e b918
-00005f d06e
-000060 d078
-000061 9512
-000062 b918
-000063 d06a
-000064 e302
-000065 d06f                      	DATA_SEND
-000066 ef0f                      	ldi temp,255
-000067 d06d                      	rcall delayTx1ms
+0000f5 e016                      	ldi temp2, 0x06 ; display shift off, address auto increment
+0000f6 9512
+0000f7 b918
+0000f8 d079
+0000f9 d083
+0000fa 9512
+0000fb b918
+0000fc d075
+0000fd e302
+0000fe d07a                      	DATA_SEND
+0000ff ef0f                      	ldi temp,255
+000100 d078                      	rcall delayTx1ms
                                  
-000068 9a2d
-000069 e208
-00006a d06a                      	CHAR_MODE					
-00006b 9508                      	ret
+000101 9a2d
+000102 e208
+000103 d075                      	CHAR_MODE					
+000104 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: printScreen
                                  ; purpose: prints data to the string
                                  ; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
                                  printScreen:
-00006c d002                      	rcall printDCStatus
-00006d d019                      	rcall printLedStatus
-00006e 9508                      	ret
+000105 d002                      	rcall printDCStatus
+000106 d024                      	rcall printLedStatus
+000107 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: printDCStatus
@@ -1242,33 +1491,44 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
                                  ; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
                                  printDCStatus:
                                  	// Move cursor to the right position
-00006f d081                      	rcall moveCursorToDC
-                                 	
-                                 	// Duty Cycle digits
-000070 2f14                      	mov temp2, duty_cycle_first
-000071 9512
-000072 b918
-000073 d05a
-000074 d064
-000075 9512
-000076 b918
-000077 d056
-000078 e302
-000079 d05b                      	DATA_SEND
-00007a d068                      	rcall display_delay
-00007b 2f15                      	mov temp2, duty_cycle_sec
-00007c 9512
-00007d b918
-00007e d04f
-00007f d059
-000080 9512
-000081 b918
-000082 d04b
-000083 e302
-000084 d050                      	DATA_SEND
-000085 d05d                      	rcall display_delay 
+000108 d08c                      	rcall moveCursorToDC
                                  
-000086 9508                      	ret
+                                 	// Duty Cycle digits
+000109 2f14                      	mov temp2, duty_cycle_first
+00010a 9512
+00010b b918
+00010c d065
+00010d d06f
+00010e 9512
+00010f b918
+000110 d061
+000111 e302
+000112 d066                      	DATA_SEND
+000113 d073                      	rcall display_delay
+000114 2f15                      	mov temp2, duty_cycle_sec
+000115 9512
+000116 b918
+000117 d05a
+000118 d064
+000119 9512
+00011a b918
+00011b d056
+00011c e302
+00011d d05b                      	DATA_SEND
+00011e d068                      	rcall display_delay
+00011f 2f16                      	mov temp2, duty_cycle_third
+000120 9512
+000121 b918
+000122 d04f
+000123 d059
+000124 9512
+000125 b918
+000126 d04b
+000127 e302
+000128 d050                      	DATA_SEND
+000129 d05d                      	rcall display_delay 
+                                 
+00012a 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: printLedStatus
@@ -1276,328 +1536,330 @@ AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3
                                  ; NOTE: ASSUMES THAT WE'RE IN CHAR MODE
                                  printLedStatus:
                                  	// Move cursor to the right position
-000087 d0a4                      	rcall moveCursorToLED
+00012b d0a4                      	rcall moveCursorToLED
                                  
-000088 3060                      	cpi LED_on_off, 0x00
-000089 f111                      	breq off
+                                 	;cpi LED_on_off, 0x00
+00012c 3070                      	cpi led_on_off,0x00
+00012d f111                      	breq off
+                                 
                                  
                                  	// on
-00008a e41f                      	ldi temp2, 0b01001111
-00008b 9512
-00008c b918
-00008d d040
-00008e d04a
-00008f 9512
-000090 b918
-000091 d03c
-000092 e302
-000093 d041                      	DATA_SEND
-000094 d04e                      	rcall display_delay
+00012e e41f                      	ldi temp2, 0b01001111
+00012f 9512
+000130 b918
+000131 d040
+000132 d04a
+000133 9512
+000134 b918
+000135 d03c
+000136 e302
+000137 d041                      	DATA_SEND
+000138 d04e                      	rcall display_delay
                                  
-000095 e41e                      	ldi temp2, 0b01001110
-000096 9512
-000097 b918
-000098 d035
-000099 d03f
-00009a 9512
-00009b b918
-00009c d031
-00009d e302
-00009e d036                      	DATA_SEND
-00009f d043                      	rcall display_delay
+000139 e41e                      	ldi temp2, 0b01001110
+00013a 9512
+00013b b918
+00013c d035
+00013d d03f
+00013e 9512
+00013f b918
+000140 d031
+000141 e302
+000142 d036                      	DATA_SEND
+000143 d043                      	rcall display_delay
                                  
-0000a0 e110                      	ldi temp2, 0b00010000
-0000a1 9512
-0000a2 b918
-0000a3 d02a
-0000a4 d034
-0000a5 9512
-0000a6 b918
-0000a7 d026
-0000a8 e302
-0000a9 d02b                      	DATA_SEND
-0000aa d038                      	rcall display_delay
-0000ab 9508                      	ret
+000144 e110                      	ldi temp2, 0b00010000
+000145 9512
+000146 b918
+000147 d02a
+000148 d034
+000149 9512
+00014a b918
+00014b d026
+00014c e302
+00014d d02b                      	DATA_SEND
+00014e d038                      	rcall display_delay
+00014f 9508                      	ret
                                  
                                  	// off
                                  	off:
-0000ac e41f                      	ldi temp2, 0b01001111
-0000ad 9512
-0000ae b918
-0000af d01e
-0000b0 d028
-0000b1 9512
-0000b2 b918
-0000b3 d01a
-0000b4 e302
-0000b5 d01f                      	DATA_SEND
-0000b6 d02c                      	rcall display_delay
+000150 e41f                      	ldi temp2, 0b01001111
+000151 9512
+000152 b918
+000153 d01e
+000154 d028
+000155 9512
+000156 b918
+000157 d01a
+000158 e302
+000159 d01f                      	DATA_SEND
+00015a d02c                      	rcall display_delay
                                  
-0000b7 e416                      	ldi temp2, 0b01000110
-0000b8 9512
-0000b9 b918
-0000ba d013
-0000bb d01d
-0000bc 9512
-0000bd b918
-0000be d00f
-0000bf e302
-0000c0 d014                      	DATA_SEND
-0000c1 d021                      	rcall display_delay
+00015b e416                      	ldi temp2, 0b01000110
+00015c 9512
+00015d b918
+00015e d013
+00015f d01d
+000160 9512
+000161 b918
+000162 d00f
+000163 e302
+000164 d014                      	DATA_SEND
+000165 d021                      	rcall display_delay
                                  
-0000c2 e416                      	ldi temp2, 0b01000110
-0000c3 9512
-0000c4 b918
-0000c5 d008
-0000c6 d012
-0000c7 9512
-0000c8 b918
-0000c9 d004
-0000ca e302
-0000cb d009                      	DATA_SEND
-0000cc d016                      	rcall display_delay
+000166 e416                      	ldi temp2, 0b01000110
+000167 9512
+000168 b918
+000169 d008
+00016a d012
+00016b 9512
+00016c b918
+00016d d004
+00016e e302
+00016f d009                      	DATA_SEND
+000170 d016                      	rcall display_delay
                                  
-0000cd 9508                      	ret
+000171 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: LCDStrobe
                                  ; purpose: flashes the rs port
                                  LCDStrobe:
-0000ce 9a2b                      	SET_E
-0000cf 0000                      	nop
-0000d0 0000                      	nop
-0000d1 0000                      	nop
-0000d2 0000                      	nop
-0000d3 982b                      	CLEAR_E
-0000d4 9508                      	ret
+000172 9a2b                      	SET_E
+000173 0000                      	nop
+000174 0000                      	nop
+000175 0000                      	nop
+000176 0000                      	nop
+000177 982b                      	CLEAR_E
+000178 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: delayTx1ms
                                  ; purpose: dealys for 1ms x temp
                                  delayTx1ms:
-0000d5 d003                      	rcall delay1ms
-0000d6 950a                      	dec temp
-0000d7 f7e9                      	brne delayTx1ms
-0000d8 9508                      	ret
+000179 d003                      	rcall delay1ms
+00017a 950a                      	dec temp
+00017b f7e9                      	brne delayTx1ms
+00017c 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: delay1ms
                                  ; purpose: delays for ~1ms (1004 us)
                                  delay1ms:
-0000d9 e125                          ldi  r18, 21
-0000da ec37                          ldi  r19, 199
-0000db 953a                      	L1: dec  r19
-0000dc f7f1                          brne L1
-0000dd 952a                          dec  r18
-0000de f7e1                          brne L1
-0000df 9508                      	ret
+00017d e125                          ldi  r18, 21
+00017e ec37                          ldi  r19, 199
+00017f 953a                      	L1: dec  r19
+000180 f7f1                          brne L1
+000181 952a                          dec  r18
+000182 f7e1                          brne L1
+000183 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: delay100ms
                                  ; purpose: delays for ~1ms (1004 us)
                                  delay100ms:
-0000e0 e604                      	ldi temp, 100
-0000e1 dff3                      	rcall delayTx1ms
-0000e2 9508                      	ret
+000184 e604                      	ldi temp, 100
+000185 dff3                      	rcall delayTx1ms
+000186 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: display_delay
                                  ; purpose: delays for ~40 ms. Enough elapsed time for 
                                  ;		  display to prep for next DATA_SEND
                                  display_delay:
-0000e3 e208                      	ldi temp, 40
-0000e4 dff0                      	rcall delayTx1ms
-0000e5 9508                      	ret
+000187 e208                      	ldi temp, 40
+000188 dff0                      	rcall delayTx1ms
+000189 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: displayCString
                                  ; purpose: writes a string to the LCD
                                  displayCString:
-0000e6 9005                      	lpm		r0,Z+		; r0 <--first byte
-0000e7 2000                      	tst		r0			; Reached end of message ?
-0000e8 f039                      	breq	done		; Yes => quit
-0000e9 9402                      	swap	r0			; Upper nibble in place
-0000ea b808                      	out		PORTC,r0	; Send upper nibble out
-0000eb dfe2                      	rcall	LCDStrobe	; Latch nibble
-0000ec 9402                      	swap	r0          ; Lower nibble in place
-0000ed b808                      	out		PORTC,r0	; Send lower nibble out
-0000ee dfdf                      	rcall	LCDStrobe	; Latch nibble
-0000ef cff6                      	rjmp	displayCstring
+00018a 9005                      	lpm		r0,Z+		; r0 <--first byte
+00018b 2000                      	tst		r0			; Reached end of message ?
+00018c f039                      	breq	done		; Yes => quit
+00018d 9402                      	swap	r0			; Upper nibble in place
+00018e b808                      	out		PORTC,r0	; Send upper nibble out
+00018f dfe2                      	rcall	LCDStrobe	; Latch nibble
+000190 9402                      	swap	r0          ; Lower nibble in place
+000191 b808                      	out		PORTC,r0	; Send lower nibble out
+000192 dfdf                      	rcall	LCDStrobe	; Latch nibble
+000193 cff6                      	rjmp	displayCstring
                                  done:
-0000f0 9508                      	ret
+000194 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: moveCursorToDC
                                  ; purpose: moves LCD cursor to the proper position
                                  ;		   to rewrite the Duty Cycle
                                  moveCursorToDC:
-0000f1 982d
-0000f2 e208
-0000f3 dfe1                      	COMMAND_MODE
+000195 982d
+000196 e208
+000197 dfe1                      	COMMAND_MODE
                                  
                                  	// Move to line 1
-0000f4 dfee                      	rcall display_delay
-0000f5 e000                      	ldi temp, 0x00
-0000f6 b908                      	out PORTC,temp
-0000f7 dfd6                      	rcall LCDStrobe
-0000f8 dfea                      	rcall display_delay
-0000f9 e002                      	ldi temp, 0x02
-0000fa b908                      	out PORTC,temp
-0000fb dfd2                      	rcall LCDStrobe
+000198 dfee                      	rcall display_delay
+000199 e000                      	ldi temp, 0x00
+00019a b908                      	out PORTC,temp
+00019b dfd6                      	rcall LCDStrobe
+00019c dfea                      	rcall display_delay
+00019d e002                      	ldi temp, 0x02
+00019e b908                      	out PORTC,temp
+00019f dfd2                      	rcall LCDStrobe
                                  
-0000fc 9a2d
-0000fd e208
-0000fe dfd6                      	CHAR_MODE
+0001a0 9a2d
+0001a1 e208
+0001a2 dfd6                      	CHAR_MODE
                                  
                                  	// Move cursor to proper position by rewriting top of screen
                                  	// TODO - move cursor without rewriting characters -- takes too long
                                  	// and makes the screen feel sluggish.
-0000ff e414                      	ldi temp2, 0b01000100 
-000100 9512
-000101 b918
-000102 dfcb
-000103 dfd5
-000104 9512
-000105 b918
-000106 dfc7
-000107 e302
-000108 dfcc                      	DATA_SEND
-000109 dfd9                      	rcall display_delay
-00010a e413                      	ldi temp2, 0b01000011
-00010b 9512
-00010c b918
-00010d dfc0
-00010e dfca
-00010f 9512
-000110 b918
-000111 dfbc
-000112 e302
-000113 dfc1                      	DATA_SEND
-000114 dfce                      	rcall display_delay
-000115 e31a                      	ldi temp2, 0b00111010
-000116 9512
-000117 b918
-000118 dfb5
-000119 dfbf
-00011a 9512
-00011b b918
-00011c dfb1
-00011d e302
-00011e dfb6                      	DATA_SEND
-00011f dfc3                      	rcall display_delay
-000120 e110                      	ldi temp2, 0b00010000
-000121 9512
-000122 b918
-000123 dfaa
-000124 dfb4
-000125 9512
-000126 b918
-000127 dfa6
-000128 e302
-000129 dfab                      	DATA_SEND
-00012a dfb8                      	rcall display_delay
+0001a3 e414                      	ldi temp2, 0b01000100 
+0001a4 9512
+0001a5 b918
+0001a6 dfcb
+0001a7 dfd5
+0001a8 9512
+0001a9 b918
+0001aa dfc7
+0001ab e302
+0001ac dfcc                      	DATA_SEND
+0001ad dfd9                      	rcall display_delay
+0001ae e413                      	ldi temp2, 0b01000011
+0001af 9512
+0001b0 b918
+0001b1 dfc0
+0001b2 dfca
+0001b3 9512
+0001b4 b918
+0001b5 dfbc
+0001b6 e302
+0001b7 dfc1                      	DATA_SEND
+0001b8 dfce                      	rcall display_delay
+0001b9 e31a                      	ldi temp2, 0b00111010
+0001ba 9512
+0001bb b918
+0001bc dfb5
+0001bd dfbf
+0001be 9512
+0001bf b918
+0001c0 dfb1
+0001c1 e302
+0001c2 dfb6                      	DATA_SEND
+0001c3 dfc3                      	rcall display_delay
+0001c4 e110                      	ldi temp2, 0b00010000
+0001c5 9512
+0001c6 b918
+0001c7 dfaa
+0001c8 dfb4
+0001c9 9512
+0001ca b918
+0001cb dfa6
+0001cc e302
+0001cd dfab                      	DATA_SEND
+0001ce dfb8                      	rcall display_delay
                                  
-00012b 9508                      	ret
+0001cf 9508                      	ret
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: moveCursorToLED
                                  ; purpose: moves LCD cursor to the proper position to 
                                  ;		   rewrite the LED status
                                  moveCursorToLED:
-00012c 982d
-00012d e208
-00012e dfa6                      	COMMAND_MODE
+0001d0 982d
+0001d1 e208
+0001d2 dfa6                      	COMMAND_MODE
                                  
-00012f e00c                      	ldi temp, 0x0C
-000130 b908                      	out PORTC,temp
-000131 df9c                      	rcall LCDStrobe
+0001d3 e00c                      	ldi temp, 0x0C
+0001d4 b908                      	out PORTC,temp
+0001d5 df9c                      	rcall LCDStrobe
                                  	// Cursor offset
-000132 e000                      	ldi temp,0x00
-000133 b908                      	out PORTC, temp
-000134 df99                      	rcall LCDStrobe
+0001d6 e000                      	ldi temp,0x00
+0001d7 b908                      	out PORTC, temp
+0001d8 df99                      	rcall LCDStrobe
                                  
-000135 9a2d
-000136 e208
-000137 df9d                      	CHAR_MODE
+0001d9 9a2d
+0001da e208
+0001db df9d                      	CHAR_MODE
                                  
                                  
                                  	// Move to LED position by rewriting LED: 
-000138 e41c                      	ldi temp2, 0b01001100
-000139 9512
-00013a b918
-00013b df92
-00013c df9c
-00013d 9512
-00013e b918
-00013f df8e
-000140 e302
-000141 df93                      	DATA_SEND
-000142 dfa0                      	rcall display_delay
-000143 e415                      	ldi temp2, 0b01000101
-000144 9512
-000145 b918
-000146 df87
-000147 df91
-000148 9512
-000149 b918
-00014a df83
-00014b e302
-00014c df88                      	DATA_SEND
-00014d df95                      	rcall display_delay
-00014e e414                      	ldi temp2, 0b01000100
-00014f 9512
-000150 b918
-000151 df7c
-000152 df86
-000153 9512
-000154 b918
-000155 df78
-000156 e302
-000157 df7d                      	DATA_SEND
-000158 df8a                      	rcall display_delay
-000159 e31a                      	ldi temp2, 0b00111010
-00015a 9512
-00015b b918
-00015c df71
-00015d df7b
-00015e 9512
-00015f b918
-000160 df6d
-000161 e302
-000162 df72                      	DATA_SEND
-000163 df7f                      	rcall display_delay
-000164 e110                      	ldi temp2, 0b00010000
-000165 9512
-000166 b918
-000167 df66
-000168 df70
-000169 9512
-00016a b918
-00016b df62
-00016c e302
-00016d df67                      	DATA_SEND
-00016e df74                      	rcall display_delay
+0001dc e41c                      	ldi temp2, 0b01001100
+0001dd 9512
+0001de b918
+0001df df92
+0001e0 df9c
+0001e1 9512
+0001e2 b918
+0001e3 df8e
+0001e4 e302
+0001e5 df93                      	DATA_SEND
+0001e6 dfa0                      	rcall display_delay
+0001e7 e415                      	ldi temp2, 0b01000101
+0001e8 9512
+0001e9 b918
+0001ea df87
+0001eb df91
+0001ec 9512
+0001ed b918
+0001ee df83
+0001ef e302
+0001f0 df88                      	DATA_SEND
+0001f1 df95                      	rcall display_delay
+0001f2 e414                      	ldi temp2, 0b01000100
+0001f3 9512
+0001f4 b918
+0001f5 df7c
+0001f6 df86
+0001f7 9512
+0001f8 b918
+0001f9 df78
+0001fa e302
+0001fb df7d                      	DATA_SEND
+0001fc df8a                      	rcall display_delay
+0001fd e31a                      	ldi temp2, 0b00111010
+0001fe 9512
+0001ff b918
+000200 df71
+000201 df7b
+000202 9512
+000203 b918
+000204 df6d
+000205 e302
+000206 df72                      	DATA_SEND
+000207 df7f                      	rcall display_delay
+000208 e110                      	ldi temp2, 0b00010000
+000209 9512
+00020a b918
+00020b df66
+00020c df70
+00020d 9512
+00020e b918
+00020f df62
+000210 e302
+000211 df67                      	DATA_SEND
+000212 df74                      	rcall display_delay
                                  
-00016f 9508                      	ret
+000213 9508                      	ret
                                  
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                  ; function: moveToLine2
                                  ; purpose: moves LCD cursor to line 2
                                  moveToLine2:
-000170 982d
-000171 e208
-000172 df62                      	COMMAND_MODE
+000214 982d
+000215 e208
+000216 df62                      	COMMAND_MODE
                                  
-000173 e00c                      	ldi temp, 0x0C
-000174 b908                      	out PORTC,temp
-000175 df58                      	rcall LCDStrobe
+000217 e00c                      	ldi temp, 0x0C
+000218 b908                      	out PORTC,temp
+000219 df58                      	rcall LCDStrobe
                                  	// Cursor offset
-000176 e000                      	ldi temp,0x00
-000177 b908                      	out PORTC, temp
-000178 df55                      	rcall LCDStrobe
+00021a e000                      	ldi temp,0x00
+00021b b908                      	out PORTC, temp
+00021c df55                      	rcall LCDStrobe
                                  
-000179 9a2d
-00017a e208
-00017b df59                      	CHAR_MODE
+00021d 9a2d
+00021e e208
+00021f df59                      	CHAR_MODE
                                  
 
 
@@ -1618,37 +1880,37 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   1 r0 :   6 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  61 r17: 116 r18:   2 r19:   2 r20:   2 
-r21:   2 r22:   2 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16:  99 r17: 121 r18:   2 r19:   2 r20:   7 
+r21:   9 r22:   5 r23:   5 r24:  10 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   0 r31:   0 
-Registers used: 9 out of 35 (25.7%)
+Registers used: 11 out of 35 (31.4%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   3 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   2 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   4 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   3 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   5 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+brne  :  11 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   6 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   1 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   1 cpse  :   0 dec   :   3 eor   :   0 fmul  :   0 fmuls :   0 
+cpi   :  11 cpse  :   0 dec   :   3 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  77 lds   :   0 lpm   :   1 lsl   :   0 
-lsr   :   0 mov   :   2 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   4 or    :   0 ori   :   0 out   :  58 pop   :   0 
-push  :   0 rcall : 145 ret   :  14 reti  :   0 rjmp  :   2 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  15 sbic  :   0 sbis  :   0 
+ld    :   0 ldd   :   0 ldi   : 106 lds   :   0 lpm   :   1 lsl   :   0 
+lsr   :   0 mov   :   3 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   8 or    :   0 ori   :   0 out   :  72 pop   :   0 
+push  :   0 rcall : 156 ret   :  22 reti  :   3 rjmp  :   5 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  16 sbic  :   2 sbis  :   0 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
-sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   0 
-sub   :   0 subi  :   0 swap  :  48 tst   :   1 wdr   :   0 
-Instructions used: 16 out of 113 (14.2%)
+sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   3 
+sub   :   3 subi  :   0 swap  :  50 tst   :   1 wdr   :   0 
+Instructions used: 24 out of 113 (21.2%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0002fa    762      0    762   32768   2.3%
+[.cseg] 0x000000 0x000442    992      0    992   32768   3.0%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

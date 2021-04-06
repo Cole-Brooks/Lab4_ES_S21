@@ -1,4 +1,9 @@
 .include "m328Pdef.inc"
+.cseg
+.org 0
+
+
+
 .def tmp1 = r23 ; Use r23 for temporary variables
 .def tmp2 = r24 ; use r24 for temporary values
 .cseg

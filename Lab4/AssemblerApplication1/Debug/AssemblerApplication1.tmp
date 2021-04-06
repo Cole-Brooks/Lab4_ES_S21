@@ -22,23 +22,38 @@
   <FILE>AssemblerApplication1.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <start><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>96</LINE></start>
-  <init_LCD><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>151</LINE></init_LCD>
-  <delayTx1ms><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>275</LINE></delayTx1ms>
-  <printScreen><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>196</LINE></printScreen>
-  <bruh><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>145</LINE></bruh>
-  <delay100ms><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>296</LINE></delay100ms>
-  <LCDStrobe><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>263</LINE></LCDStrobe>
-  <delay1ms><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>284</LINE></delay1ms>
-  <printDCStatus><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>205</LINE></printDCStatus>
-  <printLedStatus><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>223</LINE></printLedStatus>
-  <moveCursorToDC><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>331</LINE></moveCursorToDC>
-  <display_delay><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>305</LINE></display_delay>
-  <moveCursorToLED><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>367</LINE></moveCursorToLED>
-  <off><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>245</LINE></off>
-  <L1><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>287</LINE></L1>
-  <displayCString><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>313</LINE></displayCString>
-  <done><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>324</LINE></done>
-  <moveToLine2><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>403</LINE></moveToLine2>
+  <RESET><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>38</LINE></RESET>
+  <toggleLed><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>229</LINE></toggleLed>
+  <rpgChangeDetected><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>251</LINE></rpgChangeDetected>
+  <start><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>142</LINE></start>
+  <init_LCD><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>355</LINE></init_LCD>
+  <delayTx1ms><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>484</LINE></delayTx1ms>
+  <main><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>204</LINE></main>
+  <printScreen><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>400</LINE></printScreen>
+  <bruh><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>218</LINE></bruh>
+  <toggle_off><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>240</LINE></toggle_off>
+  <printLedStatus><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>430</LINE></printLedStatus>
+  <incrementDC><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>265</LINE></incrementDC>
+  <decrementDC><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>310</LINE></decrementDC>
+  <printDCStatus><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>409</LINE></printDCStatus>
+  <led_ONinc><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>271</LINE></led_ONinc>
+  <not_max><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>278</LINE></not_max>
+  <third_set><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>296</LINE></third_set>
+  <incrementFirst><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>305</LINE></incrementFirst>
+  <led_ONdec><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>315</LINE></led_ONdec>
+  <not_min><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>322</LINE></not_min>
+  <not_max_dec><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>339</LINE></not_max_dec>
+  <decrement_sec><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>347</LINE></decrement_sec>
+  <delay100ms><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>505</LINE></delay100ms>
+  <LCDStrobe><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>472</LINE></LCDStrobe>
+  <delay1ms><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>493</LINE></delay1ms>
+  <moveCursorToDC><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>540</LINE></moveCursorToDC>
+  <display_delay><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>514</LINE></display_delay>
+  <moveCursorToLED><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>576</LINE></moveCursorToLED>
+  <off><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>454</LINE></off>
+  <L1><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>496</LINE></L1>
+  <displayCString><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>522</LINE></displayCString>
+  <done><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>533</LINE></done>
+  <moveToLine2><FILE>C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm</FILE><LINE>612</LINE></moveToLine2>
  </LABELS>
 </ASSEMBLER_INFO>
