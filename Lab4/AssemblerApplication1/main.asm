@@ -12,8 +12,45 @@
 ; R18 and 19 are used in timers
 .def duty_cycle_first			= R20
 .def duty_cycle_sec				= R21
+.def duty_cycle_third			= R22 // only used when duty cycle = 100
 // NOTE: if LED_on_off != 0, then LED is on
-.def LED_on_off					= R22 
+.def LED_on_off					= R23 
+
+; INTERRUPT VECTOR TABLE
+.org 0
+rjmp RESET
+.org INT0addr
+rjmp toggleLed
+.org 0x000A
+rjmp rpgChangeDetected
+.org 0x34
+
+RESET:
+	; Set interrupt to trigger when input is low
+	ldi temp, (1<<ISC01)|(1<<ISC00)
+	sts EICRA, temp
+
+	ldi temp, (1<<INT0)
+	out EIMSK, temp
+
+	ldi temp, (1<<INTF0)
+	out EIFR, temp
+
+	clr temp
+	out DDRD, temp
+
+	// 
+	ldi temp, 0b00000100
+	sts PCICR, temp
+
+	// Enable pins 3 and 4 for internal interrupt
+	ldi temp, 0b10010000
+	sts PCMSK2, temp
+
+	; Global interrupt enable
+	sei
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Macro: COMMAND MODE: 
@@ -73,7 +110,7 @@
 .equ LCD_4 = PORTC0
 .equ LCD_5 = PORTC1
 .equ LCD_6 = PORTC2
-.equ LCD_7 = PORTC3
+.equ LCD_7 = PORTC3 
 
 .equ LCD_rs = PORTB5
 .equ LCD_e = PORTB3
@@ -91,10 +128,10 @@
 .equ LCD_4_bit_mode_init_2 = 0x32		; 3 different commands. 1 initializes in 8 bit mode
 .equ LCD_4_bit_mode_set = 0x28			; 2 moves it to 
 
-
 ; ****************************** MAIN PROGRAM *******************************
 start:
 ; init stack pointer to highest RAM address;
+	cli
 	ldi temp, low(RAMEND)
 	out SPL, temp
 	ldi temp, high(RAMEND)
@@ -118,7 +155,10 @@ start:
 	sbi DDRC, 1 ; D5
 	sbi DDRC, 2 ; D6
 	sbi DDRC, 3 ; D7
-	 
+
+; configure input
+	cbi DDRD, 2
+
 ; init LCD
 	rcall init_LCD 
 	ldi temp, 255
@@ -127,8 +167,12 @@ start:
 ; init LED (default: ON) and Duty Cycle (50)
 	ldi duty_cycle_first, 0b00110101
 	ldi duty_cycle_sec, 0b00110000
+	ldi duty_cycle_third, 0b00100000
 	ldi LED_on_off, 0x01
 
+	sei
+
+main:
 ; print screen
 	rcall printScreen
 
@@ -143,8 +187,114 @@ start:
 ;	rcall displayCString
 
 	bruh:
+	nop
+	nop
+	nop
+	nop
 rjmp bruh
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: toggleLED
+; purpose: Handles the push button input. Toggles the 
+;		   Current status of the LED (on/off)
+ toggleLED:
+	cpi LED_on_off, 0x00
+	brne toggle_off
+
+	// The led is off, turn it on
+	ldi LED_on_off, 0x01
+	rcall printLedStatus
+	reti
+
+	// The led is on, turn it off
+	toggle_off:
+	ldi LED_on_off, 0x00
+	rcall printLedStatus
+	reti
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: rpgChangeDetected
+; purpose: Handles RPG changes. Should change duty cycle of LED
+;		   Called via interrupt.
+ rpgChangeDetected:
+	sbic PIND, 4
+	rcall incrementDC
+
+	sbic PIND, 7
+	rcall decrementDC
+
+	ldi temp, 100
+	rcall delayTx1ms
+
+	rcall printDCStatus
+	reti
+
+	;************* Helper Functions *****************;
+	incrementDC:
+		; first, check if duty cycle = 100, if it is, just return
+		cpi duty_cycle_third, 0b00110000
+		brne not_max
+
+		ret
+		not_max:
+
+		; Now, check if duty cycle = 95. If it is, then need to add third digit
+		cpi duty_cycle_first, 0b00111001
+		brne third_set
+		cpi duty_cycle_sec, 0b00110101
+		brne third_set
+
+		ldi duty_cycle_first, 0b00110001
+		ldi duty_cycle_sec, 0b00110000
+		ldi duty_cycle_third, 0b00110000
+		ret
+
+		third_set:
+		; If second digit is zero, then add five to this register
+		; If second digit is five, set this register to 0 and increment first digit
+		cpi duty_cycle_sec, 0b00110101
+		breq incrementFirst
+		ldi temp, 0b00000101
+		ADD duty_cycle_sec, temp
+		ret
+
+		incrementFirst:
+		ldi temp, 0b00000001
+		ADD duty_cycle_first, temp
+		ret
+
+	decrementDC:
+		; first, check if dc = 0, if it is, just return
+		cpi duty_cycle_first, 0b00110000
+		brne not_min
+		cpi duty_cycle_sec, 0b00110000
+		brne not_min
+
+		ret
+		not_min:
+
+		; next, check if dc = 100. If it is, we need to set it to 95
+		cpi duty_cycle_third, 0b00110000
+		brne not_max_dec
+
+		ldi duty_cycle_first, 0b00111001
+		ldi duty_cycle_sec, 0b00110101
+		ldi duty_cycle_third, 0b00100000
+		ret
+
+		not_max_dec:
+		cpi duty_cycle_sec, 0b00110101
+		breq decrement_sec
+
+		ldi temp, 0b00000001
+		SUB duty_cycle_first, temp
+		ret
+
+		decrement_sec:
+		ldi temp, 0b00000101
+		SUB duty_cycle_sec, temp
+
+		ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: init_LCD
 ; purpose: initializes the LCD
@@ -211,6 +361,9 @@ printDCStatus:
 	DATA_SEND
 	rcall display_delay
 	mov temp2, duty_cycle_sec
+	DATA_SEND
+	rcall display_delay
+	mov temp2, duty_cycle_third
 	DATA_SEND
 	rcall display_delay 
 
