@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\Cole Brooks\OneDrive\Documents\Spring 2021\Embedded Systems\Labs\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Mon Apr 05 11:24:45 2021
+AVRASM ver. 2.2.8  C:\Users\tombu\OneDrive - University of Iowa\Spring 2021\ece3360-Embedded Systems\Lab 4\Lab4_ES_S21\Lab4\AssemblerApplication1\main.asm Tue Apr 06 03:17:20 2021
 
 
 EQU  SIGNATURE_000 0000001e
@@ -697,9 +697,15 @@ EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 DEF  temp         r16
 DEF  temp2        r17
+DEF  temp3        r18
 DEF  duty_cycle_first r20
 DEF  duty_cycle_sec r21
-DEF  LED_on_off   r22
+DEF  duty_cycle_third r22
+DEF  LED_on_off   r23
+DEF  ledDC        r24
+CSEG RESET        00000034
+CSEG toggleLed    00000072
+CSEG rpgChangeDetected 0000007d
 EQU  LCD_port     0000000b
 EQU  LCD_ddr      0000000a
 EQU  LCD_4        00000000
@@ -716,21 +722,33 @@ EQU  LCD_on       0000000c
 EQU  LCD_4_bit_mode_init_1 00000033
 EQU  LCD_4_bit_mode_init_2 00000032
 EQU  LCD_4_bit_mode_set 00000028
-CSEG start        00000000
-CSEG init_LCD     0000001a
-CSEG delayTx1ms   000000d5
-CSEG printScreen  0000006c
-CSEG bruh         00000019
-CSEG delay100ms   000000e0
-CSEG LCDStrobe    000000ce
-CSEG delay1ms     000000d9
-CSEG printDCStatus 0000006f
-CSEG printLedStatus 00000087
-CSEG moveCursorToDC 000000f1
-CSEG display_delay 000000e3
-CSEG moveCursorToLED 0000012c
-CSEG off          000000ac
-CSEG L1           000000db
-CSEG displayCString 000000e6
-CSEG done         000000f0
-CSEG moveToLine2  00000170
+CSEG start        00000044
+CSEG init_LCD     000000b3
+CSEG delayTx1ms   00000179
+CSEG main         0000006c
+CSEG printScreen  00000105
+CSEG bruh         0000006d
+CSEG toggle_off   00000078
+CSEG printLedStatus 0000012b
+CSEG incrementDC  00000085
+CSEG decrementDC  0000009d
+CSEG printDCStatus 00000108
+CSEG led_ONinc    00000087
+CSEG not_max      0000008a
+CSEG third_set    00000095
+CSEG incrementFirst 0000009a
+CSEG led_ONdec    0000009f
+CSEG not_min      000000a2
+CSEG not_max_dec  000000ab
+CSEG decrement_sec 000000b0
+CSEG delay100ms   00000184
+CSEG LCDStrobe    00000172
+CSEG delay1ms     0000017d
+CSEG moveCursorToDC 00000195
+CSEG display_delay 00000187
+CSEG moveCursorToLED 000001d0
+CSEG off          00000150
+CSEG L1           0000017f
+CSEG displayCString 0000018a
+CSEG done         00000194
+CSEG moveToLine2  00000214
