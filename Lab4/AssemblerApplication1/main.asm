@@ -21,10 +21,8 @@
 .def duty_cycle_third			= R22 // only used when duty cycle = 100
 // NOTE: if LED_on_off != 0, then LED is on
 .def LED_on_off					= R23 
-
 ;;;;; if works replace with r20 and delete r21
 .def ledDC						= R24
-
 
 ; INTERRUPT VECTOR TABLE
 .org 0
@@ -39,6 +37,8 @@ RESET:
 	; Set interrupt to trigger when input is low
 	ldi temp, (1<<ISC01)|(1<<ISC00)
 	sts EICRA, temp
+	ldi temp, (1<<ISC11)|(0<<ISC10)
+	sts EICRA, temp
 
 	ldi temp, (1<<INT0)
 	out EIMSK, temp
@@ -46,7 +46,7 @@ RESET:
 	ldi temp, (1<<INTF0)
 	out EIFR, temp
 
-	clr temp
+	ldi temp, 0b00000100
 	out DDRD, temp
 
 	// 
@@ -59,8 +59,6 @@ RESET:
 
 	; Global interrupt enable
 	sei
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Macro: COMMAND MODE: 
@@ -205,28 +203,17 @@ main:
 ; print screen
 	rcall printScreen
 
-; create static string in program memory
-;.cseg
-;	msg1: .db "DC = ", 0x00
-;	ldi r30,LOW(2*msg1) ; load Z register low
-;	ldi r31,HIGH(2*msg1) ; load Z register high
-
-;	CHAR_MODE ; make sure in character mode
-;	CLEAR_E ; make sure E is cleared
-;	rcall displayCString
-
-	bruh:
-	nop
-	nop
-	nop
-	nop
-rjmp bruh
+	loop:
+	; All interactions with the circuit from here on out
+	; are interrupt driven.  Main loop does nothing.
+rjmp loop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: toggleLED
 ; purpose: Handles the push button input. Toggles the 
 ;		   Current status of the LED (on/off)
  toggleLED:
+
 	cpi LED_on_off, 0x00
 	brne toggle_off
 
@@ -244,11 +231,32 @@ rjmp bruh
 	rcall printLedStatus
 	reti
 
+	filter_press:
+	reti
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; function: pbsDebounce
+; purpose: debounces the pushbutton switch
+pbsDebounce:
+	ldi temp, 5  
+	ldi temp2, 0
+	
+	pbs_pressed:
+		rcall delay1ms
+		sbic PIND, 2
+		inc temp2
+		dec temp
+		brne pbs_pressed
+
+	cpi temp2, 4
+	brlt filter_press
+	ret
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: rpgChangeDetected
 ; purpose: Handles RPG changes. Should change duty cycle of LED
 ;		   Called via interrupt.
- rpgChangeDetected:
+rpgChangeDetected:
 	sbic PIND, 4
 	rcall incrementDC
 
@@ -259,15 +267,19 @@ rjmp bruh
 	rcall delayTx1ms
 
 	rcall printDCStatus
+	force_ret:
 	reti
 
 	;************* Helper Functions *****************;
 	incrementDC:
+		; if led is at 100 currently, just skip this whole thing
+		cpi duty_cycle_third, 0b00110000
+		breq force_ret
+
 		; check if led off
 		cpi ledDC,101
 		brne led_ONinc
 		
-
 		led_ONinc:
 		; check if ledDC at TOP
 		cpi ledDC,99
@@ -280,7 +292,6 @@ rjmp bruh
 		ldi temp,5
 		sub ledDC,temp
 		out OCR0B, ledDC ; update led duty cycle
-
 
 		; Now, check if duty cycle = 95. If it is, then need to add third digit
 		cpi duty_cycle_first, 0b00111001
@@ -325,8 +336,6 @@ rjmp bruh
 		add ledDC,temp
 		out OCR0B, ledDC ; update led duty cycle
 		
-
-	
 		; next, check if dc = 100. If it is, we need to set it to 95
 		cpi duty_cycle_third, 0b00110000
 		brne not_max_dec
@@ -349,6 +358,7 @@ rjmp bruh
 		SUB duty_cycle_sec, temp
 
 		ret
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; function: init_LCD
 ; purpose: initializes the LCD
@@ -514,23 +524,6 @@ delay100ms:
 display_delay:
 	ldi temp, 40
 	rcall delayTx1ms
-	ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; function: displayCString
-; purpose: writes a string to the LCD
-displayCString:
-	lpm		r0,Z+		; r0 <--first byte
-	tst		r0			; Reached end of message ?
-	breq	done		; Yes => quit
-	swap	r0			; Upper nibble in place
-	out		PORTC,r0	; Send upper nibble out
-	rcall	LCDStrobe	; Latch nibble
-	swap	r0          ; Lower nibble in place
-	out		PORTC,r0	; Send lower nibble out
-	rcall	LCDStrobe	; Latch nibble
-	rjmp	displayCstring
-done:
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
